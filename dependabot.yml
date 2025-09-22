@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "npm" # still correct for pnpm
+    directory: "/"           # root directory of your project
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+    allow:
+      - dependency-type: "direct"

@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  paybill:
+    tty: true
+    stdin_open: true
+    container_name: paybill-app
+    image: paybilldev/paybill-ce:latest
+    restart: always
+    env_file: .env
+    ports:
+      - 80:80
+    depends_on:
+      - redis
+    environment:
+      SERVE_CLIENT: "true"
+      PORT: "80"
+    command: pnpm start:prod
+
+  redis:
+    container_name: ${REDIS_HOST}
+    image: redis:6.2
+    restart: always
+    deploy: # Please adjust the resource according to your usecase
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    env_file:
+      - .env
+    environment:
+      - MASTER=${REDIS_HOST}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}

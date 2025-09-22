@@ -1,0 +1,43 @@
+{
+  "name": "@paybilldev/acl",
+  "version": "0.0.1-beta.1",
+  "description": "Access Control List (ACL) package for PaybillDev, providing role-based permissions and authorization utilities for managing user access.",
+  "license": "AGPL-3.0-only",
+  "main": "dist/index.js",
+  "typings": "index.d.ts",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "index.d.ts"
+  ],
+  "keywords": [
+    "acl"
+  ],
+  "author": {
+    "name": "ebartile",
+    "email": "ebartile@gmail.com"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand",
+    "cov": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand --coverage --forceExit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paybilldev/paybill.git",
+    "directory": "packages/acl"
+  },
+  "dependencies": {
+    "lodash": "4.17.21",
+    "dayjs": "1.11.13",
+    "minimatch": "^10.0.3"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.17.20",
+    "@types/jest": "^30.0.0",
+    "@types/node": "20.17.10"
+  }
+}

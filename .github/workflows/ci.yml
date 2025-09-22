@@ -1,0 +1,210 @@
+name: CI
+# Controls when the workflow will run
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    types: [labeled, unlabeled, closed]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  FORCE_COLOR: true
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  NODE_ENV: test
+  APP_ENV: test
+  APP_PORT: 3000
+  API_BASE_PATH: /api/
+  WS_PATH: /ws
+  APP_KEY: test-key
+  APP_PUBLIC_PATH: /
+
+  ################# DATABASE (Override to use test DB) #################
+  DB_DIALECT: postgres
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_DATABASE: paybilldev_test
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_LOGGING: off
+
+  ################# INIT CONFIG #################
+  INIT_APP_LANG: en-US
+  INIT_ROOT_EMAIL: admin@paybill.dev
+  INIT_ROOT_PASSWORD: !Admin123.
+  INIT_ROOT_NICKNAME: Super Admin
+  INIT_ROOT_USERNAME: paybill
+
+  ################# LOGGER #################
+  LOGGER_TRANSPORT: console
+  LOGGER_BASE_PATH: storage/logs
+  LOGGER_LEVEL: debug
+  LOGGER_FORMAT: json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'labeled' && github.event.label.name == 'run-ci' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.18.2
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.18.2
+          cache: 'pnpm'
+
+      - name: Install npm
+        run: npm install -g npm
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Cache node modules to speed up subsequent builds
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install Node.js dependencies
+        run: pnpm i
+
+      - name: Build
+        run: pnpm build
+
+      - name: CI
+        run: |
+          pnpm ci
+    
+      # Upload server build artifacts
+      - name: Archive specific server files and folders
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-files
+          path: |
+            apps/server/dist
+            apps/server/package.json
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.18.2
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.18.2
+          cache: 'pnpm'
+
+      - name: Install npm
+        run: npm install -g npm
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Cache node modules to speed up subsequent builds
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install Node.js dependencies
+        run: pnpm i
+
+      - name: Lint
+        run: |
+          pnpm lint
+
+  unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # Set a timeout of 30 minutes
+    needs: build
+    container: node:18.18.2-bullseye
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+          path: ~/.pnpm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - run: apt update && apt install -y postgresql-client
+      - run: pnpm test
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # Set a timeout of 30 minutes
+    needs: build
+    container: node:18.18.2-bullseye
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # pnpm cache files are stored in `~/.pnpm` on Linux/macOS
+          path: ~/.pnpm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - run: apt update && apt install -y postgresql-client
+      - run: NODE_OPTIONS=--max_old_space_size=8096 pnpm e2e -- --silent --testTimeout=20000

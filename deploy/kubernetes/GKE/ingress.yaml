@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "pb-static-ip"
+    networking.gke.io/managed-certificates: "pb"
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+
+spec:
+  rules:
+  - host: paybill.your-domain.com
+    http:
+      paths:
+        - path: /*
+          backend:
+            serviceName: pb-service
+            servicePort: 8080
+            

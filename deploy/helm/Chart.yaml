@@ -1,0 +1,24 @@
+apiVersion: v2
+name: paybill
+version: 0.0.1
+description: Open Source Apps To Grow Your Business.
+type: application
+home: https://www.paybill.dev/
+sources:
+  - https://github.com/paybilldev/paybill
+keywords:
+  - lowcode
+  - internal-tools
+maintainers:
+  - name: paybilldev
+    url: https://github.com/paybilldev/paybill
+
+dependencies:
+  - name: postgresql
+    version: "11.6.19"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "16.13.2"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled

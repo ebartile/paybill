@@ -1,0 +1,43 @@
+name: paybilldev
+services:
+  - name: paybilldev
+    image:
+      registry_type: DOCKER_HUB
+      registry: paybilldev
+      repository: paybill
+      tag: ce-lts-latest
+    run_command: "./scripts/digitalocean-postbuild.sh"
+    instance_count: 1
+    instance_size_slug: basic-s          # 1 GB RAM, 1 vCPU
+    http_port: 3000                      # the port your Node app listens on
+    health_check:
+      http_path: /api/__health_check
+      initial_delay_seconds: 10
+    envs:
+      # --- runtime / build‑time variables --------------------------
+      - key: NODE_ENV
+        value: "production"
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=4096"
+      - key: APP_KEY
+        value: "REPLACE_ME"
+        type: SECRET
+      - key: DEPLOYMENT_PLATFORM
+        value: "digitalocean"
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${pg-db.DATABASE_URL}
+      - key: CA_CERT
+        scope: RUN_TIME
+        value: ${pg-db.CA_CERT}
+      - key: PAYBILL_HOST
+        scope: RUN_TIME
+        value: ${APP_URL}
+
+databases:
+  - name: pg-db
+    engine: PG
+    version: "16"
+    size: db-s-dev-d8              # 1 GB RAM, 1 vCPU (dev tier)
+    num_nodes: 1
+    production: false

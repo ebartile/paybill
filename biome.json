@@ -1,0 +1,59 @@
+{
+	"root": true,
+	"$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"assist": { "actions": { "source": { "organizeImports": "off" } } },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"suspicious": {
+				"noDuplicateObjectKeys": "warn"
+			},
+			"complexity": {
+				"noUselessSwitchCase": "warn",
+				"noUselessTypeConstraint": "warn"
+			},
+			"correctness": {
+				"noUnusedImports": "warn",
+				"noUnusedVariables": {
+					"level": "warn",
+					"options": {
+						"ignoreRestSiblings": false
+					}
+				}
+			},
+			"nursery": {
+				"noMisusedPromises": "error"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": [],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedImports": "off"
+					}
+				}
+			}
+		}
+	],
+	"files": {
+		"includes": [
+			"**",
+			"!**/docs",
+			"!**/landing",
+			"!**/panel",
+			"!**/dist",
+			"!**/package.json",
+			"!**/node_modules",
+			"!**/static/skeletons",
+			"!**/.turbo"
+		]
+	}
+}

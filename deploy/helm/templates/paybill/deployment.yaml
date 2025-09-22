@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paybill.fullname" . }}
+  labels:
+    {{- include "paybill.labels" . | nindent 4 }}
+    {{- include "paybill.selectorLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.apps.paybill.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "paybill.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "paybill.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.apps.paybill.deployment.image.repository }}:{{ .Values.apps.paybill.deployment.image.tag }}"
+          imagePullPolicy: {{ .Values.apps.paybill.deployment.image.pullPolicy }}
+          args: ["pnpm", "start:prod"]
+          ports:
+            - name: http
+              containerPort: {{ .Values.apps.paybill.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.apps.paybill.deployment.resources | nindent 12 }}
+          env:
+            - name: PAYBILL_HOST
+              value: {{ .Values.env.PAYBILL_HOST | quote }}
+            {{- if not .Values.external_postgresql.enabled }}
+            - name: PG_HOST
+              value: {{ include "paybill.postgresql.host" . | quote }}
+            - name: PG_PORT
+              value: {{ include "paybill.postgresql.port" . | quote }}
+            - name: PG_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: PG_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paybill.postgresql.secretName" . }}
+                  key: postgres-password
+            {{- else }}
+            - name: PG_HOST
+              value: {{ .Values.external_postgresql.PG_HOST | quote }}
+            - name: PG_PORT
+              value: {{ .Values.external_postgresql.PG_PORT | quote }}
+            - name: PG_USER
+              value: {{ .Values.external_postgresql.PG_USER | quote }}
+            - name: PG_PASS
+              value: {{ .Values.external_postgresql.PG_PASS | quote }}
+            - name: PG_DB
+              value: {{ .Values.external_postgresql.PG_DB | quote }}
+            {{- end }}
+            {{- if .Values.paybilldb_external_postgresql.enabled }}
+            - name: PB_DB_HOST
+              value: {{ .Values.paybilldb_external_postgresql.PB_DB_HOST | quote }}
+            - name: PB_DB_USER
+              value: {{ .Values.paybilldb_external_postgresql.PB_DB_USER | quote }}
+            - name: PB_DB_PASS
+              value: {{ .Values.paybilldb_external_postgresql.PB_DB_PASS | quote }}
+            - name: PB_DB
+              value: {{ .Values.paybilldb_external_postgresql.PB_DB | quote }}
+            {{- else }}
+            - name: PB_DB_HOST
+              value: {{ .Values.env.PB_DB_HOST | quote }}
+            - name: PB_DB_USER
+              value: {{ .Values.env.PB_DB_USER | quote }}
+            - name: PB_DB_PASS
+              value: {{ .Values.env.PB_DB_PASS | quote }}
+            - name: PB_DB
+              value: {{ .Values.env.PB_DB | quote }}
+            {{- end }}
+            - name: REDIS_HOST
+              value: {{ .Values.redis_pod.REDIS_HOST | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.redis_pod.REDIS_PORT | quote }}
+            - name: REDIS_USER
+              value: {{ .Values.redis_pod.REDIS_USER | quote }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paybill.fullname" . }}-redis
+                  key: password
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apps.paybill.secret.name }}
+                  key: APP_KEY
+          envFrom:
+            - secretRef:
+                name: {{ .Values.apps.paybill.secret.name }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

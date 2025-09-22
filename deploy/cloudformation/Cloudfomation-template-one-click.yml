@@ -1,0 +1,376 @@
+Description: Creating ECS service
+Parameters:
+  AppName:
+    Type: String
+    Description: Name of app requiring ALB exposure
+    Default: Paybill
+  ServiceName:
+    Type: String
+
+Resources:
+  MySSMPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: Paybill-ssm-policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "ssmmessages:CreateControlChannel"
+              - "ssmmessages:CreateDataChannel"
+              - "ssmmessages:OpenControlChannel"
+              - "ssmmessages:OpenDataChannel"
+            Resource: "*"
+      Roles:
+        - !Ref MyTaskExecutionRole
+
+  MySecretsManagerPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: Paybill-secrets-manager-policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: "secretsmanager:GetSecretValue"
+            Resource:
+              "Fn::Sub": >-
+                arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:paybill-secret
+      Roles:
+        - !Ref MyTaskExecutionRole
+
+  MyTaskExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: Paybill-task-execution-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+
+  MyLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: /ecs/Paybill
+
+  cluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: Paybill
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  paybillce:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref MyTaskExecutionRole
+      TaskRoleArn: !Ref MyTaskExecutionRole
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "1024"
+      Memory: "3072"
+      ContainerDefinitions:
+        - Name: !Ref AppName
+          Image: "paybilldev/paybill:CE-LTS-latest"
+          Cpu: "1"
+          Memory: "3072"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref MyLogGroup
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: ecs
+          PortMappings:
+            - ContainerPort: 3000
+              Protocol: tcp
+          Command:
+            - pnpm
+            - "start:prod"
+          Environment:
+            - Name: PAYBILL_HOST
+              Value: "http://localhost"
+            - Name: PG_HOST
+              Value: !GetAtt database.Endpoint.Address
+            - Name: PG_USER
+              Value: postgres
+            - Name: PG_PASS
+              Value: postgres
+            - Name: PG_DB
+              Value: postgres
+            - Name: APP_KEY
+              Value:
+            - Name: DEPLOYMENT_PLATFORM
+              Value: "aws:ecs"
+            - Name: REDIS_HOST
+              Value: !GetAtt memcluster.ClusterEndpoint.Address
+            - Name: REDIS_PORT
+              Value: !GetAtt memcluster.ClusterEndpoint.Port
+    DependsOn:
+      - database
+
+  service:
+    Type: "AWS::ECS::Service"
+    Properties:
+      LaunchType: FARGATE
+      HealthCheckGracePeriodSeconds: 900
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref Subnet1
+            - !Ref Subnet2
+          SecurityGroups:
+            - !Ref TaskSecurityGroup
+          AssignPublicIp: ENABLED
+      Cluster: !Ref cluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 2
+      LoadBalancers:
+        - ContainerName: !Ref AppName
+          ContainerPort: 3000
+          TargetGroupArn: !Ref targetGroup
+      TaskDefinition: !Ref paybilllce
+      ServiceName: !Ref ServiceName
+
+  targetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      Port: "3000"
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref VPC
+      HealthCheckPath: /api/__health_check
+      HealthCheckProtocol: HTTP
+
+  TaskSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Allow traffic to port 3000
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InternetGatewayId: !Ref InternetGateway
+
+  Subnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Paybill-subnet1
+
+  Subnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1d
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Paybill-subnet2
+
+  PublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Paybill-public-route-table
+
+  PublicRoute:
+    Type: "AWS::EC2::Route"
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  Subnet2RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref Subnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Paybill-internet-gateway
+
+  GatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  database:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      AllocatedStorage: "100"
+      DBInstanceClass: db.t3.micro
+      DBInstanceIdentifier: Paybill-database
+      DBName: postgres
+      Engine: postgres
+      EngineVersion: "13.7"
+      MasterUsername: postgres
+      MasterUserPassword: postgres
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref databaseSubnetGroup
+
+  RDSSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for RDS instance
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+
+  databaseSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupName: databasesubnetgroup
+      DBSubnetGroupDescription: My DB subnet group
+      SubnetIds:
+        - !Ref Subnet1
+        - !Ref Subnet2
+
+  memcluster:
+    Type: "AWS::MemoryDB::Cluster"
+    Properties:
+      ClusterName: too72
+      ACLName: !Ref ACL
+      EngineVersion: 6.2
+      NodeType: db.t4g.small
+      NumShards: 1
+      Port: 6379
+      SecurityGroupIds:
+        - !GetAtt MemoryDBSecurityGroup.GroupId
+      SubnetGroupName: !Ref mysubnetgroup
+
+  mysubnetgroup:
+    Type: "AWS::MemoryDB::SubnetGroup"
+    Properties:
+      SubnetGroupName: mysubnetgroup72
+      Description: My subnet group for MemoryDB cluster
+      SubnetIds:
+        - !GetAtt Subnet1.SubnetId
+        - !GetAtt Subnet2.SubnetId
+
+  MemoryDBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for MemoryDB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: 0.0.0.0/0
+
+  ACL:
+    Type: "AWS::MemoryDB::ACL"
+    Properties:
+      ACLName: too72
+      UserNames:
+        - !Ref memuser
+  memuser:
+    Type: "AWS::MemoryDB::User"
+    Properties:
+      AccessString: on ~* &* +@all
+      AuthenticationMode:
+        Passwords:
+          - paybillapptestingmem
+        Type: password
+      UserName: too72
+
+  alb:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Scheme: internet-facing
+      Subnets:
+        - !Ref Subnet1
+        - !Ref Subnet2
+
+  LoadBalancerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for Paybill Load Balancer
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+      VpcId: !Ref VPC
+
+  listener80:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref targetGroup
+      LoadBalancerArn: !Ref alb
+      Port: "80"
+      Protocol: HTTP
+
+  listener443:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref targetGroup
+      LoadBalancerArn: !Ref alb
+      Port: "443"
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn: # Add the certificate arn
+
+Outputs:
+  Cluster:
+    Value: !Ref cluster

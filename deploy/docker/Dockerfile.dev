@@ -1,0 +1,19 @@
+# pull official base image
+FROM node:18.18.2-buster
+RUN apt-get update && apt-get install -y postgresql-client freetds-dev libaio1 wget
+
+WORKDIR /
+
+ENV NODE_ENV=development
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+RUN npm i -g npm@9.8.1
+RUN npm i -g pnpm@10.13.1
+RUN mkdir -p /app
+WORKDIR /app
+
+# install app dependencies
+COPY . ./paybill/
+RUN pnpm --prefix server install
+
+ENTRYPOINT ["./scripts/entrypoint.sh"]

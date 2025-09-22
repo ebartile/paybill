@@ -1,0 +1,45 @@
+{
+  "name": "@paybilldev/server",
+  "version": "0.0.1-beta.1",
+  "description": "",
+  "main": "dist/index.js",
+  "typings": "index.d.ts",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "index.d.ts"
+  ],
+  "keywords": [
+  ],
+  "author": {
+    "name": "ebartile",
+    "email": "ebartile@gmail.com"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsnd --respawn src/server.ts",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"cyan.bold,green.bold\"  \"tsc -w\" \"nodemon dist/index.js\"",
+    "test": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand",
+    "cov": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand --coverage --forceExit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paybilldev/paybill.git",
+    "directory": "apps/server"
+  },
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "@types/flat": "^5.0.5",
+    "@types/glob": "^7.2.0",
+    "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^20.17.9"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2"
+  }
+}

@@ -1,0 +1,131 @@
+# Create .env from this example file and replace values for the environment.
+# The application expects a separate .env.test for test environment configuration
+# Get detailed information about each variable here: https://docs.paybill.dev/docs/setup/env-vars
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paybill-deployment
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      component: paybill
+  template:
+    metadata:
+      labels:
+        component: paybill
+    spec:
+      imagePullSecrets:
+        - name: docker-secret
+      containers:
+        - name: container
+          image: paybilldev/paybill:ce-latest
+          imagePullPolicy: Always
+          args: ["pnpm", "start:prod"]
+          resources:
+            limits:
+              memory: "1000Mi"
+              cpu: "500m"
+            requests:
+              memory: "1000Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              port: 3000
+              path: /api/health
+            successThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+          env:
+            - name: PG_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: paybill-secret
+                  key: pg_host
+            - name: PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: paybill-secret
+                  key: pg_user
+            - name: PG_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: paybill-secret
+                  key: pg_pass
+            - name: PG_DB
+              valueFrom:
+                secretKeyRef:
+                  name: paybill-secret
+                  key: pg_db
+            - name: APP_KEY
+              value: <replace_with_APP_KEY>
+            - name: PAYBILL_HOST
+              value: "https://paybill.your-domain.com"
+            - name: DEPLOYMENT_PLATFORM
+              value: "k8s:gke"
+            - name: REDIS_HOST
+              value: paybill-redis-service.default.svc.cluster.local
+            - name: PB_DB
+              value: "paybill_db"
+            - name: PB_DB_USER
+              value: "replace_with_paybill_db_user"
+            - name: PB_DB_HOST
+              value: "replace_with_paybill_db_host"
+            - name: PB_DB_PASS
+              value: "replace_with_paybill_db_pass"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: paybill-redis-statefulset
+spec:
+  selector:
+    matchLabels:
+      role: paybill-redis
+  serviceName: paybill-redis-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        role: paybill-redis
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis
+        image: redis:6.0
+        ports:
+          - containerPort: 6379
+        volumeMounts:
+          - name: paybill-redis-persistent-storage
+            mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: paybill-redis-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paybill-redis-service
+  labels:
+    name: paybill-redis
+spec:
+  type: NodePort
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    role: paybill-redis

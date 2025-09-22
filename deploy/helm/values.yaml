@@ -1,0 +1,103 @@
+apps:
+  paybill:
+    replicaCount: 1
+    containerPort: 3000
+    deployment:
+      image:
+        repository: paybilldev/paybill
+        pullPolicy: Always
+        tag: ce-lts-latest
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "3Gi"
+          cpu: "2"
+    hpa:
+      enabled: false
+      min: 1
+      max: 1
+      threshhold:
+        cpu: 1
+        ram: 1500Mi
+    secret:
+      name: paybill
+      data:
+        app_key: "0123456789ABCDEF"
+    service:
+      port: 80
+      targetPort: 3000
+      type: ClusterIP
+
+postgresql:
+  enabled: true
+  auth:
+    username: "postgres"
+    postgresPassword: "postgres"
+    database: "paybill_prod"
+    existingSecret: ""
+
+env:
+  PAYBILL_HOST: "http://paybill.localhost"
+  DEPLOYMENT_PLATFORM: "k8s:helm"
+  PB_DB_USER: "postgres"
+  PB_DB_HOST: "paybill-postgresql"
+  PB_DB_PASS: "postgres"
+  PB_DB: "paybill_db"
+
+external_postgresql:
+  enabled: false
+  PG_HOST: ""
+  PG_USER: ""
+  PG_PASS: ""
+  PG_PORT: "5432"
+  PG_DB: ""
+  existingSecret: ""
+
+paybilldb_external_postgresql:
+  enabled: false
+  PB_DB_USER: ""
+  PB_DB_HOST: ""
+  PB_DB_PASS: ""
+  PB_DB: ""
+
+redis:
+  enabled: false
+  architecture: standalone # Use in case multiple paybill pods running
+  fullnameOverride: redis
+  auth:
+    enabled: true
+    password: "paybill"
+  master:
+    service:
+      port: 6379
+
+redis_pod:
+  REDIS_HOST: "redis-master"
+  REDIS_PORT: "6379"
+  REDIS_USER: "default"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+ingress:
+  enabled: false
+  type: nginx   # traefik
+
+  traefik:
+    hostname: paybill.localhost
+    ingressClassName: traefik
+    tls: []
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+
+  nginx:
+    hostname: paybill.localhost
+    ingressClassName: nginx
+    tls: []
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /

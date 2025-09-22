@@ -1,0 +1,141 @@
+Description: Paybill EC2 deployment
+Resources:
+  paybillInstance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: ami-
+      InstanceType: t2.micro
+      KeyName: # please add the key pair name
+      SecurityGroupIds:
+        - !Ref paybillSecurityGroup
+
+  paybillSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: paybillSecurityGroup
+      GroupDescription: Allow HTTP/HTTPS and SSH inbound and outbound traffic
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  paybillEIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref paybillInstance
+      Tags:
+        - Key: Name
+          Value: !Join
+            - "-"
+            - - paybill-eip
+              - prod
+  paybillLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Name: paybillLoadBalancer
+      Subnets:
+        - !Ref paybillSubnet1
+        - !Ref paybillSubnet2
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Scheme: internet-facing
+      Tags:
+        - Key: Name
+          Value: paybill-loadBalancer
+
+  LoadBalancerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for Paybill Load Balancer
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+      VpcId: !Ref VPC
+
+  HttpListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            StatusCode: 200
+      LoadBalancerArn: !Ref paybillLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  HttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            StatusCode: 200
+      LoadBalancerArn: !Ref paybillLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn: "your-ssl-certificate-arn"
+
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Paybill-internet-gateway
+
+  GatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  paybillSubnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+
+  paybillSubnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+
+Outputs:
+  LoadBalancerDNSName:
+    Value: !GetAtt paybillLoadBalancer.DNSName
+    Description: DNS name of the load balancer
+
+  WebsiteURL:
+    Value: !Sub "https://${paybillEIP}"
+    Description: paybill URL

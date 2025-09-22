@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  paybill:
+    build:
+      context: .
+      dockerfile: ./deploy/docker/Dockerfile.dev
+    image: paybill:development
+    container_name: paybill
+    platform: linux/x86_64
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app/paybill:delegated
+      - /app/paybill/node_modules/
+      - .env:/app/.env
+      - .env.test:/app/.env.test
+    ports:
+      - 3000:3000
+    environment:
+      - SERVE_CLIENT=false
+      - FORCE_COLOR=1
+    command: pnpm --prefix server start:dev
+
+  postgres:
+    container_name: ${DB_HOST}
+    image: postgres:13
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/data/postgres
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+volumes:
+  postgres:

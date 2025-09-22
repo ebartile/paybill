@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if grep __required__ .env
+then
+  echo "Please set the required values within the .env file"
+  exit 1
+fi
+
+export $(grep -v '^#' .env | xargs)
+
+if sudo systemctl start openresty
+then
+  echo "Successfully started reverse proxy!"
+else
+  echo "Failed to start reverse proxy"
+  exit 1
+fi
+
+PAYBILL_EDTION=ce pnpm --prefix server db:create
+
+if sudo systemctl start web
+then
+  echo "The app will be served at ${PAYBILL_HOST}"
+else
+  echo "Failed to start the server!"
+  exit 1
+fi

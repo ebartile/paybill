@@ -1,0 +1,68 @@
+{
+  "name": "@paybilldev/sequelize",
+  "version": "0.0.1-beta.1",
+  "description": "A Sequelize integration package for PaybillDev, providing database models, utilities, and ORM configurations for easy setup and management.",
+  "license": "AGPL-3.0-only",
+  "main": "dist/index.js",
+  "typings": "index.d.ts",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "index.d.ts"
+  ],
+  "keywords": [
+    "sequelize"
+  ],
+  "author": {
+    "name": "ebartile",
+    "email": "ebartile@gmail.com"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_ENV=test ENCRYPTION_FIELD_KEY='Xj8P1!zB@7qR$Lm^2&vWc#nF0*Hs9YpD' node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand",
+    "cov": "NODE_ENV=test ENCRYPTION_FIELD_KEY='Xj8P1!zB@7qR$Lm^2&vWc#nF0*Hs9YpD' node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand --coverage --forceExit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paybilldev/paybill.git",
+    "directory": "packages/sequelize"
+  },
+  "dependencies": {
+    "@rc-component/mini-decimal": "^1.1.0",
+    "async-mutex": "^0.5.0",
+    "chalk": "^4.1.2",
+    "dayjs": "1.11.13",
+    "debug": "4.4.1",
+    "deepmerge": "^4.3.1",
+    "dottie": "2.0.6",
+    "excel-date-to-js": "^1.1.5",
+    "exponential-backoff": "^3.1.2",
+    "flat": "^5.0.2",
+    "glob": "11.0.0",
+    "lodash": "^4.17.21",
+    "mssql": "^11.0.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.15.0",
+    "nanoid": "^3.3.11",
+    "node-sql-parser": "^4.18.0",
+    "oracledb": "^6.9.0",
+    "pg": "^8.16.3",
+    "qs": "^6.14.0",
+    "safe-json-stringify": "^1.2.0",
+    "semver": "7.7.2",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7",
+    "umzug": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/flat": "^5.0.5",
+    "@types/glob": "^7.2.0",
+    "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.20",
+    "@types/qs": "^6.14.0",
+    "@types/semver": "7.7.0"
+  }
+}

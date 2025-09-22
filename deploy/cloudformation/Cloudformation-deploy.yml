@@ -1,0 +1,204 @@
+Description: Creating ECS service
+Parameters:
+  AppName:
+    Type: String
+    Description: Name of app requiring application loadbalancer exposure
+    Default: Paybill
+
+Resources:
+  MySSMPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: ssm-policy-Paybill
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "ssmmessages:CreateControlChannel"
+              - "ssmmessages:CreateDataChannel"
+              - "ssmmessages:OpenControlChannel"
+              - "ssmmessages:OpenDataChannel"
+            Resource: "*"
+      Roles:
+        - !Ref MyTaskExecutionRole
+
+  MySecretsManagerPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: secrets-manager-policy-Paybill
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: "secretsmanager:GetSecretValue"
+            Resource:
+              "Fn::Sub": >-
+                arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:paybill-secret
+      Roles:
+        - !Ref MyTaskExecutionRole
+
+  MyTaskExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: task-execution-role-Paybill
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+
+  MyLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: /ecs/Paybill
+
+  cluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: TJ-prod
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  alb:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Scheme: internet-facing
+      Subnets:
+        -  # add your subnet ID
+        -  # add your subnet ID
+
+  LoadBalancerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for Paybill Load Balancer
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+      VpcId:
+
+  listener80:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref targetGroup
+      LoadBalancerArn: !Ref alb
+      Port: "80"
+      Protocol: HTTP
+
+  listener443:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref targetGroup
+      LoadBalancerArn: !Ref alb
+      Port: "443"
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn: # Add the certificate arn
+
+  paybillce:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref MyTaskExecutionRole
+      TaskRoleArn: !Ref MyTaskExecutionRole
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "1024"
+      Memory: "3072"
+      ContainerDefinitions:
+        - Name: !Ref AppName
+          Image: "paybilldev/paybill:CE-LTS-latest"
+          Cpu: "1"
+          Memory: "3072"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref MyLogGroup
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: ecs
+          PortMappings:
+            - ContainerPort: 3000
+              Protocol: tcp
+          Command:
+            - pnpm
+            - "start:prod"
+          Environment:
+            - Name: PAYBILL_HOST
+              Value: "http://localhost"
+            - Name: PG_HOST
+              Value:
+            - Name: PG_USER
+              Value:
+            - Name: PG_PASS
+              Value:
+            - Name: PG_DB
+              Value:
+            - Name: APP_KEY
+              Value:
+            - Name: DEPLOYMENT_PLATFORM
+              Value: "aws:ecs"
+            - Name: REDIS_HOST
+              Value:
+            - Name: REDIS_PORT
+              Value: "6379"
+            - Name: REDIS_USER
+              value: default
+            - Name: PB_DB
+              value:
+            - Name: PB_DB_USER
+              value:
+            - Name: PB_DB_PASS
+              value:
+            - Name: PB_DB_HOST
+              value:
+
+  targetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      Port: "3000"
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+      HealthCheckPath: /api/__health_check
+      HealthCheckProtocol: HTTP
+      LoadBalancerArns:
+        - !Ref alb
+
+  TaskSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Allow traffic to port 3000
+      VpcId:
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  Cluster:
+    Value: !Ref cluster
