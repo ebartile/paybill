@@ -13,6 +13,7 @@ export default defineBuildConfig({
 	failOnWarn: false,
     externals: [
         "lodash",
+		"deepmerge",
         "dayjs",
         "minimatch"
     ],
