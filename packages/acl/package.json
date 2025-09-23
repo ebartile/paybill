@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "clean": "rimraf node_modules dist .turbo coverage",
     "test": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand",
     "cov": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand --coverage --forceExit"
   },
@@ -30,8 +31,12 @@
     "url": "https://github.com/paybilldev/paybill.git",
     "directory": "packages/acl"
   },
+  "publishConfig": {
+    "access": "public"
+  },  
   "dependencies": {
     "lodash": "4.17.21",
+    "rimraf": "^6.0.0",
     "dayjs": "1.11.13",
     "minimatch": "^10.0.3"
   },
