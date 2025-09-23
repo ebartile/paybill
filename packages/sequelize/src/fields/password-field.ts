@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { DataTypes } from 'sequelize';
 import { Model } from '../model';
-import { BaseColumnFieldOptions, Field } from './field';
+import { type BaseColumnFieldOptions, Field } from './field';
 
 export interface PasswordFieldOptions extends BaseColumnFieldOptions {
   type: 'password';

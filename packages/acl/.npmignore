@@ -4,8 +4,8 @@ test/
 
 # Ignore configs
 tsconfig.json
-jest.config.js
-jest.setup.js
+build.config.ts
+vitest.config.ts
 
 # Logs & misc
 *.log

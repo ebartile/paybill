@@ -7,10 +7,13 @@ export type SnippetOptions = {
 };
 
 class Snippet {
-  constructor(
-    public name: string,
-    public actions: Array<string>,
-  ) {}
+  name: string;
+  actions: Array<string>;
+
+  constructor(name: string, actions: Array<string>) {
+    this.name = name;
+    this.actions = actions;
+  }
 }
 
 export type SnippetGroup = {
@@ -18,7 +21,7 @@ export type SnippetGroup = {
   snippets: SnippetOptions[];
 };
 
-class SnippetManager {
+export class SnippetManager {
   public snippets: Map<string, Snippet> = new Map();
 
   register(snippet: SnippetOptions) {
@@ -52,4 +55,3 @@ class SnippetManager {
   }
 }
 
-export default SnippetManager;

@@ -6,17 +6,18 @@
   Paybill is an open-source Saleforce Alternative for developing cloud-native enterprise applications, utilizing prebuilt standardized architectures for deployment on private and public clouds.
 </p>
 
-<p align="center">
-<a href="./LICENSE">
-<img src="https://img.shields.io/github/license/paybilldev/paybill?style=for-the-badge" alt="License" />
-</a>
-<a href="https://github.com/paybilldev/paybill/graphs/contributors" target="_blank">
-  <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/paybilldev/paybill?style=for-the-badge">
-</a>
-<a href="https://www.npmjs.com/@paybilldev/acl" target="_blank">
-  <img alt="paybill acl downloads" src="https://img.shields.io/npm/dm/@paybilldev/acl?style=for-the-badge">
-</a>
-</p>
+# @paybilldev/acl
+
+[![NPM version][npm-image]][npm-url]
+[![npm download][download-image]][download-url]
+[![Node.js Version](https://img.shields.io/node/v/@paybilldev/acl.svg?style=flat)](https://nodejs.org/en/download/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/paybilldev/paybill)
+
+[npm-image]: https://img.shields.io/npm/v/@paybilldev/acl.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/@paybilldev/acl
+[download-image]: https://img.shields.io/npm/dm/@paybilldev/acl.svg?style=flat-square
+[download-url]: https://npmjs.org/package/@paybilldev/acl
 
 # ACL (Access Control List) 
 

@@ -1,9 +1,9 @@
 import { Transaction } from 'sequelize';
 import {
-  CreateOptions as SequelizeCreateOptions,
-  UpdateOptions as SequelizeUpdateOptions,
+  type CreateOptions as SequelizeCreateOptions,
+  type UpdateOptions as SequelizeUpdateOptions,
 } from 'sequelize/types/model';
-import { AssociationKeysToBeUpdate, BlackList, Values, WhiteList } from '../repository';
+import { type AssociationKeysToBeUpdate, type BlackList, type Values, type WhiteList } from '../repository';
 
 export type TargetKey = string | number | { [key: string]: any };
 

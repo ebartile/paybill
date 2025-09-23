@@ -1,5 +1,6 @@
 import { mockDatabase, Database } from '../../src';
 import { InputInterface } from '../../src/interfaces/input-interface';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('input interface', () => {
   let db: Database;

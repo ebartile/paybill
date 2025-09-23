@@ -1,30 +1,15 @@
 {
-  "compileOnSave": true,
+  "extends": "@paybilldev/tsconfig",
   "compilerOptions": {
-    "target": "ES2021",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "inlineSourceMap":true,
-    "noImplicitThis": false,
-    "noUnusedLocals": false,
-    "stripInternal": true,
-    "skipLibCheck": true,
-    "pretty": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "isolatedModules": false,
-    "forceConsistentCasingInFileNames": true,
-    "typeRoots": [ "./typings", "./node_modules/@types"],
-    "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "./",
+    "outDir": "./dist",
+    "lib": ["esnext",],
+    "noUncheckedIndexedAccess": false,
+    "types": ["node",]
   },
   "exclude": [
-    "*.js",
-    "*.ts",
     "dist",
     "node_modules",
-    "test"
-  ]
+  ],
+  "include": ["src", "test"]
 }

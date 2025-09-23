@@ -1,4 +1,5 @@
 import { Database, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('hook', () => {
   let db: Database;
@@ -45,7 +46,7 @@ describe('hook', () => {
     const throughCollection = db.getCollection('post');
     throughCollection.setField('test', { type: 'string' });
 
-    const callback = jest.fn();
+    const callback = vi.fn();
     db.on('post.afterSync', (options) => {
       callback(options);
     });

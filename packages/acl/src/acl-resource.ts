@@ -1,6 +1,6 @@
 
-import { ACLRole, RoleActionParams } from './acl-role';
-import { ACL, ListenerContext } from './acl';
+import { ACLRole, type RoleActionParams } from './acl-role';
+import { ACL, type ListenerContext } from './acl';
 import lodash from 'lodash';
 
 export type ResourceActions = { [key: string]: RoleActionParams };

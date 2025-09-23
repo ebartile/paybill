@@ -1,4 +1,4 @@
-import { DatabaseOptions } from '../database';
+import { type DatabaseOptions } from '../database';
 import { BaseDialect } from './base-dialect';
 
 export class MariadbDialect extends BaseDialect {

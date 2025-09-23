@@ -1,4 +1,4 @@
-import { Database, DatabaseOptions } from '../database';
+import { Database, type DatabaseOptions } from '../database';
 import semver from 'semver';
 
 export interface DialectVersionGuard {

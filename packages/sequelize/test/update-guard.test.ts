@@ -1,6 +1,7 @@
 import { Collection, mockDatabase, Database } from '../src';
-import * as lodash from 'lodash';
+import lodash from 'lodash';
 import { UpdateGuard } from '../src/update-guard';
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 describe('update-guard', () => {
   let db: Database;

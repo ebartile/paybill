@@ -1,5 +1,5 @@
 import lodash, { flatten } from 'lodash';
-import { Association, HasOne, HasOneOptions, Includeable, Model, ModelStatic, Op, Transaction } from 'sequelize';
+import { Association, HasOne, type HasOneOptions, type Includeable, Model, type ModelStatic, Op, Transaction } from 'sequelize';
 import Database from '../database';
 import { appendChildCollectionNameAfterRepositoryFind } from '../listeners/append-child-collection-name-after-repository-find';
 import { OptionsParser } from '../options-parser';

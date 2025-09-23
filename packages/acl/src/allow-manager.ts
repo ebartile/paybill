@@ -8,7 +8,11 @@ export class AllowManager {
 
   protected registeredCondition = new Map<string, ConditionFunc>();
 
-  constructor(public acl: ACL) {
+  public acl: ACL;
+
+  constructor(acl: ACL) {
+    this.acl = acl;
+
     this.registerAllowCondition('loggedIn', (ctx) => {
       return !!this.acl.getCurrentUser();
     });

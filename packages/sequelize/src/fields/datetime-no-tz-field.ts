@@ -1,4 +1,4 @@
-import { BaseColumnFieldOptions, Field } from './field';
+import { type BaseColumnFieldOptions, Field } from './field';
 import { DataTypes } from 'sequelize';
 import moment from 'moment';
 

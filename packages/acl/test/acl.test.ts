@@ -1,4 +1,5 @@
-import { ACL } from "../src";
+import { ACL } from "../src"
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe('acl', () => {
   let acl: ACL;
@@ -39,7 +40,7 @@ describe('acl', () => {
   it('should set available action', () => {
     acl.setAvailableAction('edit', { displayName: 'Edit' });
     const action = acl.getAvailableAction('edit');
-    expect(action.name).toBe('edit');
+    expect(action?.name).toBe('edit');
   });
 
   it('should define role with predicate', () => {

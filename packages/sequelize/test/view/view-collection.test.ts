@@ -1,5 +1,6 @@
 import { Database, ViewCollection, mockDatabase } from '../../src';
 import { uid } from '../../src/utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('pg only view', () => {
   let db: Database;
@@ -400,7 +401,7 @@ describe('create view', () => {
       ],
     });
 
-    const jestFn = jest.fn();
+    const jestFn = vi.fn();
 
     db.on('beforeSync', jestFn);
 

@@ -1,4 +1,5 @@
 import { Database, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('foreign key', () => {
   let db: Database;

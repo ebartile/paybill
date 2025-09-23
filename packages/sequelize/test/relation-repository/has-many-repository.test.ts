@@ -1,9 +1,9 @@
 import Database, {
   BelongsToManyRepository,
-  Collection,
   mockDatabase,
   HasManyRepository,
 } from '../../src';
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 describe('has many with target key', function () {
   let db: Database;

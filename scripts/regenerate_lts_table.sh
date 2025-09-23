@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 DOCKER_REPO="paybilldev/paybill"
-MARKDOWN_FILE="versioned_docs/version-1.x.x-LTS/setup/choose-your-paybill.md"
+MARKDOWN_FILE="apps/docs/versioned_docs/version-1.x.x-LTS/setup/choose-your-paybill.md"
 TABLE_HEADER="| Version | Release Date | Docker Pull Command |"
 TABLE_DIVIDER="|---------|--------------|----------------------|"
 DRY_RUN=false

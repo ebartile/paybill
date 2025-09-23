@@ -2,7 +2,7 @@ import merge from 'deepmerge';
 import { EventEmitter } from 'events';
 import { default as _, default as lodash } from 'lodash';
 import safeJsonStringify from 'safe-json-stringify';
-import {
+import type {
   ModelOptions,
   ModelStatic,
   QueryInterfaceDropTableOptions,
@@ -11,9 +11,9 @@ import {
   Transactionable,
   Utils,
 } from 'sequelize';
-import { BuiltInGroup } from './collection-group-manager';
+import { type BuiltInGroup } from './collection-group-manager';
 import { Database } from './database';
-import { BelongsToField, Field, FieldOptions, HasManyField } from './fields';
+import { BelongsToField, Field, type FieldOptions, HasManyField } from './fields';
 import { Model } from './model';
 import { Repository } from './repository';
 import { checkIdentifier, md5, snakeCase } from './utils';
@@ -31,42 +31,41 @@ export type CollectionSortable =
 type dumpable = 'required' | 'optional' | 'skip';
 type dumpableType = 'meta' | 'business' | 'config';
 
-function EnsureAtomicity(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
+function EnsureAtomicity() {
+  return function (method: Function, context: ClassMethodDecoratorContext) {
+    return function (...args: any[]) {
+      const model = this.model;
+      const beforeAssociationKeys = Object.keys(model.associations);
+      const beforeRawAttributes = Object.keys(model.rawAttributes);
+      const fieldName = args[0];
+      const beforeField = this.getField(fieldName);
 
-  descriptor.value = function (...args: any[]) {
-    const model = this.model;
-    const beforeAssociationKeys = Object.keys(model.associations);
-    const beforeRawAttributes = Object.keys(model.rawAttributes);
-    const fieldName = args[0];
-    const beforeField = this.getField(fieldName);
+      try {
+        return method.apply(this, args);
+      } catch (error) {
+        // remove associations created in this method
+        const afterAssociationKeys = Object.keys(model.associations);
+        const createdAssociationKeys = lodash.difference(afterAssociationKeys, beforeAssociationKeys);
+        for (const key of createdAssociationKeys) {
+          delete this.model.associations[key];
+        }
 
-    try {
-      return originalMethod.apply(this, args);
-    } catch (error) {
-      // remove associations created in this method
-      const afterAssociationKeys = Object.keys(model.associations);
-      const createdAssociationKeys = lodash.difference(afterAssociationKeys, beforeAssociationKeys);
-      for (const key of createdAssociationKeys) {
-        delete this.model.associations[key];
+        // remove raw attributes created in this method
+        const afterRawAttributes = Object.keys(model.rawAttributes);
+        const createdRawAttributes = lodash.difference(afterRawAttributes, beforeRawAttributes);
+        for (const key of createdRawAttributes) {
+          delete this.model.rawAttributes[key];
+        }
+
+        // remove field created in this method
+        if (!beforeField) {
+          this.removeField(fieldName);
+        }
+
+        throw error;
       }
-
-      const afterRawAttributes = Object.keys(model.rawAttributes);
-      const createdRawAttributes = lodash.difference(afterRawAttributes, beforeRawAttributes);
-      for (const key of createdRawAttributes) {
-        delete this.model.rawAttributes[key];
-      }
-
-      // remove field created in this method
-      if (!beforeField) {
-        this.removeField(fieldName);
-      }
-
-      throw error;
-    }
+    };
   };
-
-  return descriptor;
 }
 
 export type BaseDumpRules = {
@@ -421,7 +420,7 @@ export class Collection<
     }
   }
 
-  @EnsureAtomicity
+  @EnsureAtomicity()
   setField(name: string, options: FieldOptions): Field {
     checkIdentifier(name);
     this.checkFieldType(name, options);

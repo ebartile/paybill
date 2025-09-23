@@ -10,7 +10,7 @@
     "build": "pnpm run content:build && next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rimraf node_modules tsconfig.tsbuildinfo .next .contentlayer",
+    "clean": "rimraf node_modules .next .contentlayer .turbo",
     "typecheck": "pnpm run content:build && tsc --noEmit",
     "content:build": "contentlayer2 build && node scripts/generateStaticContent.mjs",
     "prettier:check": "prettier --cache --check '{pages,ui,components,lib,styles,tests}/**/*.{js,jsx,ts,tsx,css,md,mdx,json}'",

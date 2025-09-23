@@ -1,4 +1,4 @@
-import { Collection, CollectionContext, CollectionOptions } from './collection';
+import { Collection, type CollectionContext, type CollectionOptions } from './collection';
 
 export class ViewCollection extends Collection {
   constructor(options: CollectionOptions, context: CollectionContext) {

@@ -1,8 +1,8 @@
 import _ from 'lodash';
-import { DataType, ModelAttributeColumnOptions, ModelIndexesOptions, SyncOptions, Transactionable } from 'sequelize';
+import { type DataType, type ModelAttributeColumnOptions, type ModelIndexesOptions, type SyncOptions, type Transactionable } from 'sequelize';
 import { Collection } from '../collection';
 import { Database } from '../database';
-import { ModelEventTypes } from '../types';
+import { type ModelEventTypes } from '../types';
 import { snakeCase } from '../utils';
 
 export interface FieldContext {

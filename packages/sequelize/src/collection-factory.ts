@@ -1,4 +1,4 @@
-import { Collection, CollectionOptions } from './collection';
+import { Collection, type CollectionOptions } from './collection';
 import Database from './database';
 import { Model } from './model';
 

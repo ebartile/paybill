@@ -1,4 +1,5 @@
-import { ACL } from "../src";
+import { ACL } from "../src"
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe('AllowManager tests', () => {
   let acl: ACL;

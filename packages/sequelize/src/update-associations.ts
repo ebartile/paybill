@@ -5,13 +5,13 @@ import {
   BelongsToMany,
   HasMany,
   HasOne,
-  Hookable,
-  ModelStatic,
-  Transactionable,
+  type Hookable,
+  type ModelStatic,
+  type Transactionable,
 } from 'sequelize';
 import { Model } from './model';
 import { UpdateGuard } from './update-guard';
-import { TargetKey } from './repository';
+import { type TargetKey } from './repository';
 import Database from './database';
 import { getKeysByPrefix, isStringOrNumber, isUndefinedOrNull } from './utils';
 

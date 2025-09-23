@@ -4,6 +4,9 @@ packages:
   - "!apps/panel"
   - "!**/.next/**"
   - "!**/.docusaurus/**"
-  - "!**/build/**"
+  - "!**/dist/**"
   - "!**/fixtures/**"
 
+catalog:
+  typescript: ^5.9.2
+  unbuild: 3.6.1

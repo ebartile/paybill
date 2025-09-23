@@ -1,5 +1,6 @@
 import { Database, mockDatabase } from '../../src';
 import { waitSecond } from '../../src/utils';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('unique index', () => {
   let db: Database;

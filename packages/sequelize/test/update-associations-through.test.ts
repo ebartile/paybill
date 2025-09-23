@@ -1,5 +1,5 @@
 import { mockDatabase, Database } from '../src';
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('update through', () => {
   let db: Database;
@@ -45,8 +45,8 @@ describe('update through', () => {
       fields: [],
     });
     await db.sync();
-    const callback1 = jest.fn();
-    const callback2 = jest.fn();
+    const callback1 = vi.fn();
+    const callback2 = vi.fn();
     db.on('c.afterCreate', callback1);
     db.on('c.afterBulkCreate', callback2);
     const b = await db.getRepository('b').create({

@@ -1,5 +1,5 @@
 import { Database, mockDatabase } from '../src';
-
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 // TODO
 describe('sequelize-hooks', () => {
@@ -42,7 +42,7 @@ describe('sequelize-hooks', () => {
       const collection = db.collection({
         name: 't_test',
       });
-      const spy = jest.fn();
+      const spy = vi.fn();
       db.on('t_test.afterSync', () => {
         spy('afterSync');
       });
@@ -54,7 +54,7 @@ describe('sequelize-hooks', () => {
       const collection = db.collection({
         name: 't_tests',
       });
-      const spy = jest.fn();
+      const spy = vi.fn();
       db.on('t_tests.afterSync', () => {
         spy('afterSync');
       });

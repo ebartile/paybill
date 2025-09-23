@@ -1,5 +1,6 @@
 import { mockDatabase } from '../../src';
 import { Collection } from '../../src/collection';
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 describe('estimated row count test', () => {
   let db;

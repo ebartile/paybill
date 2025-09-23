@@ -1,11 +1,11 @@
 import lodash from 'lodash';
 import { BelongsToMany, Op, Transaction } from 'sequelize';
-import { AggregateOptions, CreateOptions, DestroyOptions, TargetKey } from '../repository';
+import { type AggregateOptions, type CreateOptions, type DestroyOptions, type TargetKey } from '../repository';
 import { updateAssociations, updateThroughTableValue } from '../update-associations';
 import { MultipleRelationRepository } from './multiple-relation-repository';
 import { transaction } from './relation-repository';
 
-import { AssociatedOptions, PrimaryKeyWithThroughValues } from './types';
+import { type AssociatedOptions, type PrimaryKeyWithThroughValues } from './types';
 
 type CreateBelongsToManyOptions = CreateOptions;
 

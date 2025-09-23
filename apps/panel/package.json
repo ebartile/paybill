@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rimraf node_modules tsconfig.tsbuildinfo .next",
+    "clean": "rimraf node_modules .next .turbo",
     "codegen": "openapi-typescript --redocly common/api-types/redocly.yaml --alphabetize --default-non-nullable=false && prettier --cache --write common/api-types/types/*.d.ts",
     "typecheck": "tsc --noEmit",
     "prettier:check": "prettier --cache --check .",

@@ -1,5 +1,6 @@
 import { mockDatabase, Database } from '../../src';
 import { ViewFieldInference } from '../../src/view/view-inference';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('view inference', function () {
   let db: Database;

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import lodash from 'lodash';
 import { ACLRole } from '../acl-role';
 import { assign } from './assign';
 
@@ -17,7 +17,7 @@ export function mergeRole(roles: ACLRole[]) {
     result.strategy = mergeRoleStrategy(result.strategy, jsonRole.strategy);
     result.actions = mergeRoleActions(result.actions, jsonRole.actions);
     result.resources = mergeRoleResources(result.resources, [...role.resources.keys()]);
-    if (_.isArray(jsonRole.snippets)) {
+    if (lodash.isArray(jsonRole.snippets)) {
       allSnippets.push(jsonRole.snippets);
     }
   }
@@ -58,7 +58,7 @@ function adjustActionByStrategy(
 ) {
   const { actions, strategy } = result;
   const actionSet = getAdjustActions(roles);
-  if (!_.isEmpty(actions) && !_.isEmpty(strategy?.actions) && !_.isEmpty(result.resources)) {
+  if (!lodash.isEmpty(actions) && !lodash.isEmpty(strategy?.actions) && !lodash.isEmpty(result.resources)) {
     for (const resource of result.resources) {
       for (const action of strategy.actions) {
         if (actionSet.has(action)) {
@@ -74,7 +74,7 @@ function getAdjustActions(roles: ACLRole[]) {
   for (const role of roles) {
     const jsonRole = role.toJSON();
     // Within the same role, actions have higher priority than strategy.actions.
-    if (!_.isEmpty(jsonRole.strategy?.['actions']) && _.isEmpty(jsonRole.actions)) {
+    if (!lodash.isEmpty(jsonRole.strategy?.['actions']) && lodash.isEmpty(jsonRole.actions)) {
       jsonRole.strategy['actions'].forEach((x) => !x.includes('own') && actionSet.add(x));
     }
   }
@@ -89,7 +89,7 @@ function mergeRoleStrategy(sourceStrategy, newStrategy) {
   if (!newStrategy) {
     return sourceStrategy;
   }
-  if (_.isArray(newStrategy.actions)) {
+  if (lodash.isArray(newStrategy.actions)) {
     if (!sourceStrategy.actions) {
       sourceStrategy.actions = newStrategy.actions;
     } else {
@@ -104,16 +104,16 @@ function mergeRoleStrategy(sourceStrategy, newStrategy) {
 }
 
 function mergeRoleActions(sourceActions, newActions) {
-  if (_.isEmpty(sourceActions)) return newActions;
-  if (_.isEmpty(newActions)) return sourceActions;
+  if (lodash.isEmpty(sourceActions)) return newActions;
+  if (lodash.isEmpty(newActions)) return sourceActions;
 
   const result = {};
   [...new Set(Reflect.ownKeys(sourceActions).concat(Reflect.ownKeys(newActions)))].forEach((key) => {
-    if (_.has(sourceActions, key) && _.has(newActions, key)) {
+    if (lodash.has(sourceActions, key) && lodash.has(newActions, key)) {
       result[key] = mergeAclActionParams(sourceActions[key], newActions[key]);
       return;
     }
-    result[key] = _.has(sourceActions, key) ? sourceActions[key] : newActions[key];
+    result[key] = lodash.has(sourceActions, key) ? sourceActions[key] : newActions[key];
   });
 
   return result;
@@ -197,7 +197,7 @@ function mergeRoleResources(sourceResources, newResources) {
 }
 
 export function mergeAclActionParams(sourceParams, targetParams) {
-  if (_.isEmpty(sourceParams) || _.isEmpty(targetParams)) {
+  if (lodash.isEmpty(sourceParams) || lodash.isEmpty(targetParams)) {
     return {};
   }
 
@@ -205,20 +205,20 @@ export function mergeAclActionParams(sourceParams, targetParams) {
   removeUnmatchedParams(sourceParams, targetParams, ['fields', 'whitelist', 'appends']);
 
   const andMerge = (x, y) => {
-    if (_.isEmpty(x) || _.isEmpty(y)) {
+    if (lodash.isEmpty(x) || lodash.isEmpty(y)) {
       return [];
     }
-    return _.uniq(x.concat(y)).filter(Boolean);
+    return lodash.uniq(x.concat(y)).filter(Boolean);
   };
 
   const mergedParams = assign(targetParams, sourceParams, {
     own: (x, y) => x || y,
     filter: (x, y) => {
-      if (_.isEmpty(x) || _.isEmpty(y)) {
+      if (lodash.isEmpty(x) || lodash.isEmpty(y)) {
         return {};
       }
-      const xHasOr = _.has(x, '$or'),
-        yHasOr = _.has(y, '$or');
+      const xHasOr = lodash.has(x, '$or'),
+        yHasOr = lodash.has(y, '$or');
       let $or = [x, y];
       if (xHasOr && !yHasOr) {
         $or = [...x.$or, y];
@@ -228,7 +228,7 @@ export function mergeAclActionParams(sourceParams, targetParams) {
         $or = [...x.$or, ...y.$or];
       }
 
-      return { $or: _.uniqWith($or, _.isEqual) };
+      return { $or: lodash.uniqWith($or, lodash.isEqual) };
     },
     fields: andMerge,
     whitelist: andMerge,
@@ -239,11 +239,11 @@ export function mergeAclActionParams(sourceParams, targetParams) {
 }
 
 export function removeEmptyParams(params) {
-  if (!_.isObject(params)) {
+  if (!lodash.isObject(params)) {
     return;
   }
   Object.keys(params).forEach((key) => {
-    if (_.isEmpty(params[key])) {
+    if (lodash.isEmpty(params[key])) {
       delete params[key];
     }
   });
@@ -251,10 +251,10 @@ export function removeEmptyParams(params) {
 
 function removeUnmatchedParams(source, target, keys: string[]) {
   for (const key of keys) {
-    if (_.has(source, key) && !_.has(target, key)) {
+    if (lodash.has(source, key) && !lodash.has(target, key)) {
       delete source[key];
     }
-    if (!_.has(source, key) && _.has(target, key)) {
+    if (!lodash.has(source, key) && lodash.has(target, key)) {
       delete target[key];
     }
   }

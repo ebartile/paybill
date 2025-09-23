@@ -1,4 +1,4 @@
-import { BaseDumpRules, DumpRules } from './collection';
+import type { BaseDumpRules, DumpRules } from './collection';
 import Database from './database';
 
 type RequiredGroup = 'required';

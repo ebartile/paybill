@@ -1,7 +1,7 @@
 import lodash from 'lodash';
 import { DataTypes } from 'sequelize';
 import { Model } from '../model';
-import { BaseColumnFieldOptions, Field } from './field';
+import { type BaseColumnFieldOptions, Field } from './field';
 
 export class ContextField extends Field {
   get dataType() {

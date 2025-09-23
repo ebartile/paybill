@@ -1,20 +1,19 @@
 import lodash from 'lodash';
-import { HasOne, MultiAssociationAccessors, Sequelize, Transaction } from 'sequelize';
+import { HasOne, type MultiAssociationAccessors, Sequelize, Transaction } from 'sequelize';
 import injectTargetCollection from '../decorators/target-collection-decorator';
 import { updateModelByValues } from '../update-associations';
 import { UpdateGuard } from '../update-guard';
 import { RelationRepository, transaction } from './relation-repository';
 import {
-  AssociatedOptions,
-  CountOptions,
-  DestroyOptions,
-  Filter,
-  FindOptions,
-  TargetKey,
-  UpdateOptions,
-  FirstOrCreateOptions,
+  type AssociatedOptions,
+  type CountOptions,
+  type DestroyOptions,
+  type Filter,
+  type FindOptions,
+  type TargetKey,
+  type UpdateOptions,
+  type FirstOrCreateOptions,
 } from './types';
-import { valuesToFilter } from '../utils/filter-utils';
 
 export abstract class MultipleRelationRepository extends RelationRepository {
   async targetRepositoryFilterOptionsBySourceValue(): Promise<any> {
@@ -128,7 +127,7 @@ export abstract class MultipleRelationRepository extends RelationRepository {
   }
 
   @transaction()
-  @injectTargetCollection
+  @injectTargetCollection()
   async update(options?: UpdateOptions): Promise<any> {
     const transaction = await this.getTransaction(options);
 

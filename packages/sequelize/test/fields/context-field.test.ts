@@ -1,5 +1,6 @@
 import { mockDatabase, Database } from '../../src';
 import { DataTypes } from 'sequelize';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('context field', () => {
   let db: Database;

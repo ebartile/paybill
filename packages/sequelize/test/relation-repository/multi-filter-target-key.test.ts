@@ -1,4 +1,5 @@
 import { Database, HasManyRepository, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 describe('multi target key in association repository', () => {
   let db: Database;

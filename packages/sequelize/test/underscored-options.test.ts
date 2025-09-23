@@ -1,4 +1,5 @@
 import { mockDatabase, Database } from '../src';
+import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
 describe('underscored options', () => {
   let db: Database;

@@ -1,20 +1,20 @@
 import lodash from 'lodash';
 import {
   Association,
-  BulkCreateOptions,
-  ModelStatic,
+  type BulkCreateOptions,
+  type ModelStatic,
   Op,
   QueryTypes,
   Sequelize,
-  FindAndCountOptions as SequelizeAndCountOptions,
-  CountOptions as SequelizeCountOptions,
-  CreateOptions as SequelizeCreateOptions,
-  DestroyOptions as SequelizeDestroyOptions,
-  FindOptions as SequelizeFindOptions,
-  UpdateOptions as SequelizeUpdateOptions,
-  Transactionable,
+  type FindAndCountOptions as SequelizeAndCountOptions,
+  type CountOptions as SequelizeCountOptions,
+  type CreateOptions as SequelizeCreateOptions,
+  type DestroyOptions as SequelizeDestroyOptions,
+  type FindOptions as SequelizeFindOptions,
+  type UpdateOptions as SequelizeUpdateOptions,
+  type Transactionable,
   Utils,
-  WhereOperators,
+  type WhereOperators,
 } from 'sequelize';
 
 import _ from 'lodash';
@@ -48,7 +48,7 @@ interface CreateManyOptions extends BulkCreateOptions {
   records: Values[];
 }
 
-export { Transactionable } from 'sequelize';
+export { type Transactionable } from 'sequelize';
 
 export interface FilterAble {
   filter: Filter;
@@ -714,7 +714,7 @@ export class Repository<TModelAttributes extends {} = any, TCreationAttributes e
    */
   @transaction()
   @mustHaveFilter()
-  @injectTargetCollection
+  @injectTargetCollection()
   async update(options: UpdateOptions & { forceUpdate?: boolean }) {
     if (Array.isArray(options.values)) {
       return this.updateMany({

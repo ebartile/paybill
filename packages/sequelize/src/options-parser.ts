@@ -1,9 +1,9 @@
 import lodash from 'lodash';
-import { FindAttributeOptions, ModelStatic, Op, Sequelize } from 'sequelize';
+import { type FindAttributeOptions, type ModelStatic, Op, Sequelize } from 'sequelize';
 import { Collection } from './collection';
 import { Database } from './database';
 import FilterParser from './filter-parser';
-import { Appends, Except, FindOptions } from './repository';
+import { type Appends, type Except, type FindOptions } from './repository';
 import qs from 'qs';
 
 const debug = require('debug')('sequilize');

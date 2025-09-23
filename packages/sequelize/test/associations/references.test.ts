@@ -1,4 +1,5 @@
 import { Database, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('association references', () => {
   let db: Database;

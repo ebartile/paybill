@@ -1,4 +1,5 @@
 import { mockDatabase, EncryptionField, MockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('encryption field', () => {
   let db: MockDatabase;
@@ -129,7 +130,7 @@ describe('encryption field', () => {
     });
     await db.sync();
     const r = db.getRepository('tests');
-    const fn = jest.fn();
+    const fn = vi.fn();
     try {
       await r.create({
         values: [

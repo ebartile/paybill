@@ -1,5 +1,6 @@
 import { mockDatabase, Database } from '../../src';
 import { NumberInterface } from '../../src/interfaces/number-interface';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('number interface', () => {
   let db: Database;

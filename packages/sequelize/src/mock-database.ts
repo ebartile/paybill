@@ -1,4 +1,4 @@
-import { Database, IDatabaseOptions } from './database';
+import { Database, type IDatabaseOptions } from './database';
 import { customAlphabet } from 'nanoid';
 import path from 'path';
 

@@ -17,7 +17,7 @@ export default requireModule;
 
 export async function importModule(m: string) {
 	// Fallback to requireModule in non-test environments
-	if (!(process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === "test")) {
+	if (process.env.NODE_ENV === "test") {
 		return requireModule(m);
 	}
 

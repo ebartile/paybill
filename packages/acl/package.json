@@ -3,13 +3,28 @@
   "version": "0.0.1-beta.1",
   "description": "Access Control List (ACL) package for PaybillDev, providing role-based permissions and authorization utilities for managing user access.",
   "license": "AGPL-3.0-only",
-  "main": "dist/index.js",
-  "typings": "index.d.ts",
-  "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts",
-    "index.d.ts"
-  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "keywords": [
     "acl"
   ],
@@ -18,10 +33,13 @@
     "email": "ebartile@gmail.com"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "unbuild --clean",
+    "stub": "unbuild --stub",
     "clean": "rimraf node_modules dist .turbo coverage",
-    "test": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand",
-    "cov": "NODE_ENV=test node -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand --coverage --forceExit"
+    "typecheck": "tsc --project tsconfig.json",
+    "test": "NODE_ENV=test vitest",
+    "cov": "NODE_ENV=test vitest --coverage",
+    "prepublishOnly": "pnpm build"
   },
   "engines": {
     "node": ">=20"
@@ -33,16 +51,21 @@
   },
   "publishConfig": {
     "access": "public"
-  },  
+  },
   "dependencies": {
-    "lodash": "4.17.21",
-    "rimraf": "^6.0.0",
     "dayjs": "1.11.13",
+    "lodash": "4.17.21",
     "minimatch": "^10.0.3"
   },
   "devDependencies": {
+    "@paybilldev/tsconfig": "workspace:^",
     "@types/lodash": "4.17.20",
-    "@types/jest": "^30.0.0",
-    "@types/node": "20.17.10"
+    "@types/node": "20.17.10",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "rimraf": "6",
+    "ts-node": "10.9.2",
+    "typescript": "catalog:",
+    "unbuild": "catalog:",
+    "vitest": "^3.0.5"
   }
 }

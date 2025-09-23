@@ -1,6 +1,7 @@
 import { ImporterReader } from '../src/collection-importer';
 import * as path from 'path';
 import { extend } from '../src/database';
+import { describe, expect, test } from "vitest";
 
 describe('collection importer', () => {
   test('import reader', async () => {

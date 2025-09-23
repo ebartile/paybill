@@ -1,5 +1,6 @@
 import { Database, mockDatabase } from '../../src';
 import { md5 } from '../../src/utils';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('index field options', () => {
   let db: Database;
