@@ -1,12 +1,12 @@
 
 import EventEmitter from 'events';
 import lodash from 'lodash';
-import { ACLAvailableAction, AvailableActionOptions } from './acl-available-action';
-import { ACLAvailableStrategy, AvailableStrategyOptions } from './acl-available-strategy';
-import { ACLRole, ResourceActionsOptions, RoleActionParams } from './acl-role';
-import { AllowManager, ConditionFunc } from './allow-manager';
-import FixedParamsManager, { Merger } from './fixed-params-manager';
-import SnippetManager, { SnippetOptions } from './snippet-manager';
+import { ACLAvailableAction, type AvailableActionOptions } from './acl-available-action';
+import { ACLAvailableStrategy, type AvailableStrategyOptions } from './acl-available-strategy';
+import { ACLRole, type ResourceActionsOptions, type RoleActionParams } from './acl-role';
+import { AllowManager, type ConditionFunc } from './allow-manager';
+import { FixedParamsManager, type Merger } from './fixed-params-manager';
+import { SnippetManager, type SnippetOptions } from './snippet-manager';
 import { assign, mergeAclActionParams, removeEmptyParams } from './utils';
 
 interface CanResult {
@@ -83,8 +83,11 @@ export class ACL extends EventEmitter {
 
   protected strategyResources: Set<string> | null = null;
 
-  constructor(public state?: {currentRole?: any, currentUser?: any}) {
+  public state?: {currentRole?: any, currentUser?: any};
+
+  constructor(state?: {currentRole?: any, currentUser?: any}) {
     super();
+    this.state = state;
 
     this.beforeGrantAction((ctx) => {
       if (lodash.isPlainObject(ctx.params) && ctx.params.own) {

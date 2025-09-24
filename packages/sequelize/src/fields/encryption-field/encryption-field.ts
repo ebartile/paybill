@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import { EncryptionError } from './errors/EncryptionError';
 import { aesCheckKey, aesDecrypt, aesEncrypt } from './utils';
-import { BaseColumnFieldOptions, Field } from '../field';
+import { type BaseColumnFieldOptions, Field } from '../field';
 
 export interface EncryptionFieldOptions extends BaseColumnFieldOptions {
   type: 'encryption';

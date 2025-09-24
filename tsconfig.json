@@ -1,32 +1,3 @@
 {
-  "compileOnSave": true,
-  "compilerOptions": {
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "noImplicitThis": false,
-    "noUnusedLocals": true,
-    "stripInternal": true,
-    "noImplicitReturns": false,
-    "strict": false,
-    "noEmitOnError": false,
-    "skipLibCheck": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "target": "ES2021",
-    "lib": ["ES2021"],
-    "esModuleInterop": false,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "declaration": true,
-    "declarationMap": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "pretty": true,
-    "sourceMap": true
-  },
-  "exclude": [
-    "dist",
-    "node_modules",
-    "test"
-  ]
+  "extends": "@paybilldev/tsconfig",
 }

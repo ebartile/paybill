@@ -1,4 +1,5 @@
 import { Collection, mockDatabase, Database, updateAssociations } from '../src';
+import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
 describe('update associations', () => {
   describe('belongsTo', () => {

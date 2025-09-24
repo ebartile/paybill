@@ -1,4 +1,4 @@
-import * as lodash from 'lodash';
+import lodash from 'lodash';
 import { BaseDialect } from './base-dialect';
 
 export class MysqlDialect extends BaseDialect {

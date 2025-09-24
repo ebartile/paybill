@@ -1,4 +1,5 @@
 import { CollectionGroupManager } from '../src/collection-group-manager';
+import { describe, expect, it } from "vitest";
 
 describe('collection group manager', () => {
   it('should unify duplicator option', async () => {

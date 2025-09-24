@@ -1,4 +1,5 @@
 import { percent2float } from '../src/utils';
+import { describe, expect, it } from "vitest";
 
 describe('percent2float', () => {
   it('should be NaN', () => {

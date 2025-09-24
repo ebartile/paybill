@@ -1,5 +1,5 @@
-import { ACL } from "../src";
-import SnippetManager from "../src/snippet-manager";
+import { SnippetManager, ACL } from "../src"
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe('acl snippet', () => {
   let acl: ACL;

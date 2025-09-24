@@ -1,4 +1,5 @@
 import { Collection, mockDatabase, Database } from '../../src';
+import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
 describe('destroy with targetKey', function () {
   let db: Database;

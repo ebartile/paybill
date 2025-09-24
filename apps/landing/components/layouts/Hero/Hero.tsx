@@ -17,7 +17,7 @@ const Hero = () => {
                       Simple is better than Complex
                     </span>
                     <span className="text-brand block md:ml-0">
-                      Ai 1st Framework
+                      Salesforce Alternative
                     </span>
                   </h1>
                   <p className="pt-2 text-foreground my-3 text-sm sm:mt-5 lg:mb-0 sm:text-base lg:text-lg">

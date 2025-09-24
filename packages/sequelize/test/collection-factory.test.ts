@@ -1,5 +1,5 @@
 import { Collection, Database, mockDatabase } from '../src';
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('collection factory', function () {
   let db: Database;
@@ -42,7 +42,7 @@ describe('collection factory', function () {
       static type = 'child';
     }
 
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     db.collectionFactory.registerCollectionType(ChildCollection, {
       condition: (options) => options.child,

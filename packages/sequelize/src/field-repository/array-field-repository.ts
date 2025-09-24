@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-import { Transactionable } from 'sequelize';
+import { type Transactionable } from 'sequelize';
 import { Collection } from '../collection';
 import { transactionWrapperBuilder } from '../decorators/transaction-decorator';
 import { ArrayField } from '../fields';

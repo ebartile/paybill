@@ -1,4 +1,5 @@
 import { Collection, mockDatabase, Database } from '../../src';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 
 describe('repository chunk', () => {
@@ -55,7 +56,7 @@ describe('repository chunk', () => {
       values,
     });
 
-    const chunkCallback = jest.fn();
+    const chunkCallback = vi.fn();
 
     await repository.chunk({
       chunkSize: 10,
@@ -75,7 +76,7 @@ describe('repository chunk', () => {
     });
 
     let totalCount = 0;
-    const chunkCallback = jest.fn();
+    const chunkCallback = vi.fn();
 
     await repository.chunk({
       chunkSize: 10,

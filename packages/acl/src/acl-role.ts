@@ -1,8 +1,8 @@
 
-import { default as _, default as lodash } from 'lodash';
+import lodash from 'lodash';
 import { minimatch } from 'minimatch'
-import { ACL, DefineOptions } from './acl';
-import { ACLAvailableStrategy, AvailableStrategyOptions } from './acl-available-strategy';
+import { ACL, type DefineOptions } from './acl';
+import { ACLAvailableStrategy, type AvailableStrategyOptions } from './acl-available-strategy';
 import { ACLResource } from './acl-resource';
 
 export interface RoleActionParams {
@@ -31,10 +31,16 @@ export class ACLRole {
     result: null,
   };
 
+  acl: ACL;
+  name: string;
+
   constructor(
-    public acl: ACL,
-    public name: string,
-  ) {}
+    acl: ACL,
+    name: string,
+  ) {
+    this.acl = acl;
+    this.name = name;
+  }
 
   _serializeSet(set: Set<string>) {
     return JSON.stringify([...set].sort());
@@ -177,7 +183,7 @@ export class ACLRole {
       }
     }
 
-    return _.cloneDeep({
+    return lodash.cloneDeep({
       role: this.name,
       strategy: this.strategy,
       actions,

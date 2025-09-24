@@ -1,5 +1,6 @@
-import { PoolOptions } from 'sequelize';
-import { IDatabaseOptions } from '../src';
+import { type PoolOptions } from 'sequelize';
+import { type IDatabaseOptions } from '../src';
+import { describe, expect, it } from "vitest";
 
 function getPoolOptions(config: Record<string, any>): PoolOptions {
   const options: PoolOptions = {};

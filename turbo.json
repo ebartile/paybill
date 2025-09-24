@@ -13,6 +13,10 @@
       "dependsOn": [],
       "cache": false
     },
+    "clean": {
+      "dependsOn": [],
+      "cache": false
+    },
     "test": {
       "dependsOn": ["build", "^test"],
       "outputs": []

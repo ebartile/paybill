@@ -1,16 +1,18 @@
 import lodash from 'lodash';
 
-export function transactionWrapperBuilder(transactionGenerator) {
-  return function transaction(transactionInjector?) {
-    return (target, name, descriptor) => {
-      const oldValue = descriptor.value;
-
-      descriptor.value = async function () {
+export function transactionWrapperBuilder(
+  transactionGenerator: () => Promise<any>
+) {
+  return function transaction(
+    transactionInjector?: (args: any[], transaction: any) => any
+  ) {
+    return function (method: Function, context: ClassMethodDecoratorContext) {
+      return async function (...args: any[]) {
         let transaction;
         let newTransaction = false;
 
-        if (arguments.length > 0 && typeof arguments[0] === 'object') {
-          transaction = arguments[0]['transaction'];
+        if (args.length > 0 && typeof args[0] === 'object') {
+          transaction = args[0]['transaction'];
         }
 
         if (!transaction) {
@@ -25,30 +27,28 @@ export function transactionWrapperBuilder(transactionGenerator) {
 
           transaction.eventCleanupBinded = true;
           if (this.database) {
-            this.database.removeAllListeners(`transactionRollback:${transaction.id}`);
+            this.database.removeAllListeners(
+              `transactionRollback:${transaction.id}`
+            );
           }
         });
 
-        // NewTransaction needs to be injected into the decorated function parameters
         if (newTransaction) {
           try {
             let callArguments;
-            if (lodash.isPlainObject(arguments[0])) {
-              callArguments = {
-                ...arguments[0],
-                transaction,
-              };
+            if (lodash.isPlainObject(args[0])) {
+              callArguments = { ...args[0], transaction };
             } else if (transactionInjector) {
-              callArguments = transactionInjector(arguments, transaction);
-            } else if (lodash.isNull(arguments[0]) || lodash.isUndefined(arguments[0])) {
-              callArguments = {
-                transaction,
-              };
+              callArguments = transactionInjector(args, transaction);
+            } else if (lodash.isNull(args[0]) || lodash.isUndefined(args[0])) {
+              callArguments = { transaction };
             } else {
-              throw new Error(`please provide transactionInjector for ${name} call`);
+              throw new Error(
+                `please provide transactionInjector for ${String(context.name)} call`
+              );
             }
 
-            const results = await oldValue.call(this, callArguments);
+            const results = await method.call(this, callArguments);
 
             await transaction.commit();
 
@@ -58,17 +58,19 @@ export function transactionWrapperBuilder(transactionGenerator) {
             await transaction.rollback();
 
             if (this.database) {
-              await this.database.emitAsync(`transactionRollback:${transaction.id}`);
-              await this.database.removeAllListeners(`transactionRollback:${transaction.id}`);
+              await this.database.emitAsync(
+                `transactionRollback:${transaction.id}`
+              );
+              await this.database.removeAllListeners(
+                `transactionRollback:${transaction.id}`
+              );
             }
             throw err;
           }
         } else {
-          return oldValue.apply(this, arguments);
+          return method.apply(this, args);
         }
       };
-
-      return descriptor;
     };
   };
 }

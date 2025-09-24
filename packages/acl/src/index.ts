@@ -5,5 +5,7 @@ export * from './acl-available-strategy';
 export * from './acl-resource';
 export * from './acl-role';
 export * from './skip-middleware';
+export * from './snippet-manager';
+export * from './fixed-params-manager';
 export * from './errors';
 export * from './utils';

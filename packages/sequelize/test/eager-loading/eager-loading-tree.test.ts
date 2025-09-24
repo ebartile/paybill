@@ -1,5 +1,6 @@
 import Database, { mockDatabase } from '../../src';
 import { EagerLoadingTree } from '../../src/eager-loading/eager-loading-tree';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('Eager loading tree', () => {
   let db: Database;

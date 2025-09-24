@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { BaseColumnFieldOptions, Field } from './field';
+import { type BaseColumnFieldOptions, Field } from './field';
 import { customAlphabet, nanoid } from 'nanoid';
 
 const DEFAULT_SIZE = 12;

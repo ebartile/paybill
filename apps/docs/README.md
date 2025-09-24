@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://paybilldev" target="blank"><img src="https://paybill.dev/logo-wordmark--dark.png" width="180" alt="Paybill Logo" /></a>
+  <a href="https://paybilldev" target="blank"><img src="https://paybill.dev/logo-wordmark--light.png" width="180" alt="Paybill Logo" /></a>
 </p>
 
 <p align="center">

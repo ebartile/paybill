@@ -1,4 +1,5 @@
 import InheritanceMap from '../../src/inherited-map';
+import { describe, expect, it } from "vitest";
 
 describe('InheritedMap', () => {
   it('should setInherits', () => {

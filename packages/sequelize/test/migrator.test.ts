@@ -1,5 +1,6 @@
 import { mockDatabase, Database, Migration } from '../src';
 import { resolve } from 'path';
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 
 const names = (migrations: Array<{ name: string }>) => migrations.map((m) => m.name);
@@ -41,7 +42,7 @@ describe('migrator', () => {
   });
 
   test('up and down', async () => {
-    const spy = jest.fn();
+    const spy = vi.fn();
     db.addMigration({
       name: 'migration1',
       migration: class extends Migration {

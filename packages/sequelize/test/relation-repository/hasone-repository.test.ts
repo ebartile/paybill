@@ -1,4 +1,5 @@
 import { Collection, Database, HasOneRepository, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 
 describe('has one repository', () => {
   let db: Database;
@@ -61,7 +62,7 @@ describe('has one repository', () => {
       },
     });
 
-    const fn = jest.fn();
+    const fn = vi.fn();
     db.on('profiles.afterUpdateWithAssociations', () => {
       fn();
     });

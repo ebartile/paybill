@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-import { Association, BelongsTo, BelongsToMany, HasMany, HasOne, ModelStatic, Transaction } from 'sequelize';
+import { Association, BelongsTo, BelongsToMany, HasMany, HasOne, type ModelStatic, Transaction } from 'sequelize';
 import { Collection } from '../collection';
 import Database from '../database';
 import { transactionWrapperBuilder } from '../decorators/transaction-decorator';
@@ -10,7 +10,7 @@ import { OptionsParser } from '../options-parser';
 import { updateAssociations } from '../update-associations';
 import { UpdateGuard } from '../update-guard';
 import { valuesToFilter } from '../utils/filter-utils';
-import { CreateOptions, Filter, FindOptions, FirstOrCreateOptions, TargetKey, UpdateOptions } from './types';
+import { type CreateOptions, type Filter, type FindOptions, type FirstOrCreateOptions, type TargetKey, type UpdateOptions } from './types';
 
 export const transaction = transactionWrapperBuilder(function () {
   return this.sourceCollection.model.sequelize.transaction();

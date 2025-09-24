@@ -1,5 +1,6 @@
 import { Database, mockDatabase } from '../../src';
 import { SelectInterface } from '../../src/interfaces/select-interface';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('SelectInterface', () => {
   let db: Database;

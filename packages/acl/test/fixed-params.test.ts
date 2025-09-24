@@ -1,5 +1,5 @@
-import { ACL } from "../src";
-import FixedParamsManager from "../src/fixed-params-manager";
+import { FixedParamsManager, ACL } from "../src"
+import { describe, expect, it } from "vitest";
 
 
 describe('fixed params', () => {

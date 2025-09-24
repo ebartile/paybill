@@ -1,5 +1,5 @@
 import { Collection, mockDatabase, Database, Repository } from '../src';
-
+import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 
 describe('repository', () => {
   test('value to filter', async () => {
@@ -516,7 +516,7 @@ describe('repository.update', () => {
       name: 'user2',
     });
 
-    const hook = jest.fn();
+    const hook = vi.fn();
     db.on('users.afterUpdate', hook);
 
     await User.repository.update({
@@ -543,7 +543,7 @@ describe('repository.update', () => {
     const p2 = await Post.repository.create({ values: { name: 'p2', userId: u1.id } });
     const p3 = await Post.repository.create({ values: { name: 'p3' } });
 
-    const hook = jest.fn();
+    const hook = vi.fn();
     db.on('posts.afterUpdate', hook);
 
     await Post.repository.update({
@@ -570,7 +570,7 @@ describe('repository.update', () => {
     const p2 = await Post.repository.create({ values: { name: 'p2', userId: u1.id } });
     const p3 = await Post.repository.create({ values: { name: 'p3' } });
 
-    const hook = jest.fn();
+    const hook = vi.fn();
     db.on('posts.afterUpdate', hook);
 
     await Post.repository.update({

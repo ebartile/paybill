@@ -1,5 +1,6 @@
 import { BelongsToManyRepository, mockDatabase, Database } from '../../src';
 import { InheritedCollection } from '../../src/inherited-collection';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('collection inherits', () => {
   let db: Database;
@@ -93,7 +94,7 @@ describe('collection inherits', () => {
       inherits: ['root'],
     });
 
-    const fn = jest.fn();
+    const fn = vi.fn();
     db.on('child.afterSync', (options) => {
       fn();
     });

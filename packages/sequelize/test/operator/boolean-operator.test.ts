@@ -1,4 +1,5 @@
 import Database, { Collection, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('boolean operator', () => {
   let db: Database;

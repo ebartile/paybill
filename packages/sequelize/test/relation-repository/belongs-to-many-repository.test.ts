@@ -1,4 +1,5 @@
 import { BelongsToManyRepository, Collection, mockDatabase, Database } from '../../src';
+import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
 describe('belongs to many with targetCollection', () => {
   let db: Database;

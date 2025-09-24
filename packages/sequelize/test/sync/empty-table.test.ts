@@ -1,5 +1,5 @@
 import { mockDatabase, Database } from '../../src';
-import * as process from 'process';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('empty table', () => {
   let db: Database;

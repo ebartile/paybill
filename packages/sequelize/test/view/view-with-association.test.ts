@@ -1,5 +1,6 @@
 import { mockDatabase, Database, ViewFieldInference } from '../../src';
 import { uid } from '../../src/utils';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('view with association', () => {
   let db: Database;

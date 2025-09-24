@@ -1,8 +1,8 @@
 import lodash, { omit } from 'lodash';
-import { BelongsToOptions as SequelizeBelongsToOptions, Utils } from 'sequelize';
-import { buildReference, Reference, ReferencePriority } from '../features/references-map';
+import { type BelongsToOptions as SequelizeBelongsToOptions, Utils } from 'sequelize';
+import { buildReference, type Reference, type ReferencePriority } from '../features/references-map';
 import { checkIdentifier } from '../utils';
-import { BaseRelationFieldOptions, RelationField } from './relation-field';
+import { type BaseRelationFieldOptions, RelationField } from './relation-field';
 
 export class BelongsToField extends RelationField {
   static type = 'belongsTo';

@@ -1,4 +1,5 @@
 import { BaseDialect, Database, mockDatabase } from '../../src';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('dialect extend', () => {
   let db: Database;

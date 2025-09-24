@@ -1,7 +1,7 @@
-import { Transaction, Transactionable } from 'sequelize';
+import { Transaction, type Transactionable } from 'sequelize';
 import { Collection } from '../collection';
 import sqlParser from '../sql-parser';
-import QueryInterface, { TableInfo } from './query-interface';
+import QueryInterface, { type TableInfo } from './query-interface';
 
 export default class MysqlQueryInterface extends QueryInterface {
   constructor(db) {

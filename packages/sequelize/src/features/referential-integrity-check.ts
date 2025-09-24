@@ -1,4 +1,4 @@
-import { Model, Transactionable } from 'sequelize';
+import { Model, type Transactionable } from 'sequelize';
 import Database from '../database';
 
 interface ReferentialIntegrityCheckOptions extends Transactionable {

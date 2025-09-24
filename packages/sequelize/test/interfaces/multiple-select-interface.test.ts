@@ -1,5 +1,6 @@
 import { Database, mockDatabase } from '../../src';
 import { MultipleSelectInterface } from '../../src/interfaces/multiple-select-interface';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('MultipleSelectInterface', () => {
   let db: Database;

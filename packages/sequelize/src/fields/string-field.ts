@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { BaseColumnFieldOptions, Field, FieldContext } from './field';
+import { type BaseColumnFieldOptions, Field } from './field';
 
 export class StringField extends Field {
   get dataType() {

@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 import { DateField } from './date-field';
-import { BaseColumnFieldOptions } from './field';
+import { type BaseColumnFieldOptions } from './field';
 
 export class UnixTimestampField extends DateField {
   get dataType() {

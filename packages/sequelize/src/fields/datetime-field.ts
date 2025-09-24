@@ -1,5 +1,5 @@
 import { DateField } from './date-field';
-import { BaseColumnFieldOptions } from './field';
+import { type BaseColumnFieldOptions } from './field';
 
 export class DatetimeField extends DateField {}
 

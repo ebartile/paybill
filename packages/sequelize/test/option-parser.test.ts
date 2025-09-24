@@ -1,5 +1,6 @@
 import { Collection, mockDatabase, Database } from '../src';
 import { OptionsParser } from '../src/options-parser';
+import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
 describe('option parser', () => {
   let db: Database;

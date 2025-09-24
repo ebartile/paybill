@@ -1,5 +1,6 @@
 import { Database, mockDatabase } from '../../src';
 import { BaseInterface } from '../../src/interfaces/base-interface';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('interface manager', () => {
   let db: Database;

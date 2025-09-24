@@ -1,5 +1,5 @@
 import { mockDatabase, Database } from '../src';
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe('sync', () => {
   let db: Database;
@@ -31,7 +31,7 @@ describe('sync', () => {
       ],
     });
 
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const Child = db.collection({
       name: 'child',

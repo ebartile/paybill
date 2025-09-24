@@ -1,4 +1,5 @@
-import { ACL } from "../src";
+import { ACL } from "../src"
+import { beforeEach, describe, expect, test } from "vitest";
 
 describe('multiple roles merge', () => {
   let acl: ACL;
@@ -326,7 +327,7 @@ describe('multiple roles merge', () => {
           fields: expect.arrayContaining(['a', 'b', 'c']),
         },
       });
-      expect(canResult.params.fields.length).toStrictEqual(3);
+      expect(canResult?.params.fields.length).toStrictEqual(3);
     });
   });
 

@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { BaseColumnFieldOptions, Field } from './field';
+import { type BaseColumnFieldOptions, Field } from './field';
 
 export class VirtualField extends Field {
   get dataType() {

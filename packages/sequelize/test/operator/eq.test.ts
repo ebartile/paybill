@@ -1,4 +1,5 @@
 import { mockDatabase, Database } from '../../src';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('eq operator', () => {
   let db: Database;

@@ -1,4 +1,5 @@
 import { Collection, mockDatabase, Database, HasOneRepository } from '../../src';
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 describe('has one repository', () => {
   let db: Database;

@@ -1,5 +1,6 @@
-import { Select } from 'node-sql-parser';
+import { type Select } from 'node-sql-parser';
 import sqlParser from '../src/sql-parser';
+import { describe, expect, it } from "vitest";
 
 describe('sql parser', () => {
   it('should parse sql', function () {

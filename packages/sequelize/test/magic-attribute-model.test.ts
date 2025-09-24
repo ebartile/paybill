@@ -1,4 +1,5 @@
 import { mockDatabase, Database, MagicAttributeModel } from '../src';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 describe('magic-attribute-model', () => {
   let db: Database;

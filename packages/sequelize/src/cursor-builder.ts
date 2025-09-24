@@ -1,5 +1,5 @@
 import { Sequelize, QueryTypes, Op } from 'sequelize';
-import { FindOptions } from './repository';
+import { type FindOptions } from './repository';
 import { Model } from './model';
 import _ from 'lodash';
 import { Collection } from './collection';

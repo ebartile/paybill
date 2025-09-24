@@ -1,4 +1,4 @@
-import { ArrayField, ArrayFieldOptions } from './array-field';
+import { ArrayField, type ArrayFieldOptions } from './array-field';
 
 export interface SetFieldOptions extends Omit<ArrayFieldOptions, 'type'> {
   type: 'set';

@@ -8,41 +8,41 @@ import { basename, isAbsolute, resolve } from 'path';
 import safeJsonStringify from 'safe-json-stringify';
 import {
   DataTypes,
-  ModelStatic,
+  type ModelStatic,
   Op,
-  Options,
-  QueryInterfaceDropAllTablesOptions,
-  QueryOptions,
+  type Options,
+  type QueryInterfaceDropAllTablesOptions,
+  type QueryOptions,
   Sequelize,
-  SyncOptions,
-  Transactionable,
+  type SyncOptions,
+  type Transactionable,
   Utils,
 } from 'sequelize';
 import { SequelizeStorage, Umzug } from 'umzug';
-import { Collection, CollectionOptions, RepositoryType } from './collection';
+import { Collection, type CollectionOptions, type RepositoryType } from './collection';
 import { CollectionFactory } from './collection-factory';
-import { ImporterReader, ImportFileExtension } from './collection-importer';
+import { ImporterReader, type ImportFileExtension } from './collection-importer';
 import DatabaseUtils from './database-utils';
 import ReferencesMap from './features/references-map';
 import { referentialIntegrityCheck } from './features/referential-integrity-check';
 import { ArrayFieldRepository } from './field-repository/array-field-repository';
 import * as FieldTypes from './fields';
-import { Field, FieldContext, RelationField } from './fields';
+import { Field, type FieldContext, RelationField } from './fields';
 import { checkDatabaseVersion, registerDialects } from './helpers';
 import { InheritedCollection } from './inherited-collection';
 import InheritanceMap from './inherited-map';
 import { InterfaceManager } from './interface-manager';
 import { registerInterfaces } from './interfaces/utils';
 import { registerBuiltInListeners } from './listeners';
-import { MigrationItem, Migrations } from './migration';
+import { type MigrationItem, Migrations } from './migration';
 import { Model } from './model';
 import { ModelHook } from './model-hook';
 import extendOperators from './operators';
 import QueryInterface from './query-interface/query-interface';
 import buildQueryInterface from './query-interface/query-interface-builder';
 import { RelationRepository } from './relation-repository/relation-repository';
-import { Repository, TargetKey } from './repository';
-import {
+import { Repository, type TargetKey } from './repository';
+import type  {
   AfterDefineCollectionListener,
   BeforeDefineCollectionListener,
   CreateListener,

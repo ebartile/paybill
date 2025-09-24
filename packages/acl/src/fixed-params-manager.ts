@@ -7,7 +7,7 @@ export type ActionPath = string;
 
 const SPLIT = ':';
 
-export default class FixedParamsManager {
+export class FixedParamsManager {
   merger = new Map<ActionPath, Array<Merger>>();
 
   addParams(resource: string, action: string, merger: Merger) {

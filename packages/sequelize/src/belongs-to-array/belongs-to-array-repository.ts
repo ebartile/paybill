@@ -1,12 +1,12 @@
 import _ from 'lodash';
-import { Transactionable } from 'sequelize';
+import { type Transactionable } from 'sequelize';
 import { Collection } from '../collection';
 import { transactionWrapperBuilder } from '../decorators/transaction-decorator';
-import { FindOptions } from '../repository';
+import { type FindOptions } from '../repository';
 import { MultipleRelationRepository } from '../relation-repository/multiple-relation-repository';
 import Database from '../database';
 import { Model } from '../model';
-import { UpdateAssociationOptions } from '../update-associations';
+import { type UpdateAssociationOptions } from '../update-associations';
 
 const transaction = transactionWrapperBuilder(function () {
   return this.collection.model.sequelize.transaction();
