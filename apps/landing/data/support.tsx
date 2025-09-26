@@ -73,7 +73,7 @@ const data = {
     links: [
       {
         label: 'Contact Enterprise Sales',
-        link: 'https://paybilldev.zohodesk.com/portal/en/newticket',
+        link: 'https://paybill.dev.zohodesk.com/portal/en/newticket',
         target: '_blank',
         type: 'default',
       },

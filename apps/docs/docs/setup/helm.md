@@ -12,7 +12,7 @@ This repository contains Helm charts for deploying [Paybill](https://github.com/
 ### From Helm repo
 
 ```bash
-helm repo add paybill https://paybilldev.github.io/paybill
+helm repo add paybill https://paybill.dev.github.io/paybill
 helm install paybill paybilldev/paybill
 ```
 
