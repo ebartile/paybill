@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://paybilldev" target="blank"><img src="https://paybill.dev/logo-wordmark--light.png" width="180" alt="Paybill Logo" /></a>
+  <a href="https://paybill.dev" target="blank"><img src="https://paybill.dev/logo-wordmark--light.png" width="180" alt="Paybill Logo" /></a>
 </p>
 
 <p align="center">
@@ -41,6 +41,37 @@ const acl = new ACL({ currentUser: 'user-123', currentRole: 'admin' });
 * `currentUser` – Who is currently logged in.
 * `currentRole` – The role currently active for permission checks.
 
+---
+```mermaid
+flowchart TD
+    A[ACL] --> B[Roles]
+    A --> C[Available Actions]
+    A --> D[Strategies]
+    A --> E[Snippets]
+    A --> F[AllowManager]
+
+    B --> B1[Define Role]
+    B --> B2[Grant Action]
+    B --> B3[Revoke Action]
+    B --> B4[Merge Roles]
+
+    C --> C1[Action Metadata: type, displayName, aliases]
+    D --> D1[Actions: wildcard star, deny false, or explicit list]
+    E --> E1[Snippets with wildcard or negation]
+    F --> F1[allow: resource + action + condition]
+    F --> F2[isAllowed: resource + action + context]
+
+    subgraph "Permission Flow"
+        G1[Define Role / Strategy / Snippet] --> G2[Grant or Revoke Actions]
+        G2 --> G3[beforeGrantAction Hook]
+        G3 --> G4[ACL.can check]
+        G4 --> H[Permission Result]
+    end
+
+    H --> H1[Allowed → returns role, resource, action, params]
+    H --> H2[Denied → returns null]
+
+```
 ---
 
 ## 2. Available Actions (`ACLAvailableAction`)
