@@ -1,45 +1,51 @@
-import { BaseInterface } from './base-interface';
+import { BaseInterface } from "./base-interface";
 
 export class ToManyInterface extends BaseInterface {
-  async toValue(str: string, ctx?: any) {
-    if (!str) {
-      return null;
-    }
+	async toValue(str: string, ctx?: any) {
+		if (!str) {
+			return null;
+		}
 
-    str = `${str}`.trim();
+		str = `${str}`.trim();
 
-    const items = str.split(',');
+		const items = str.split(",");
 
-    const { filterKey, targetCollection, transaction, field } = ctx;
+		const { filterKey, targetCollection, transaction, field } = ctx;
 
-    const targetInstances = await targetCollection.repository.find({
-      filter: {
-        [filterKey]: items,
-      },
-      transaction,
-    });
+		const targetInstances = await targetCollection.repository.find({
+			filter: {
+				[filterKey]: items,
+			},
+			transaction,
+		});
 
-    // check if all items are found
-    items.forEach((item) => {
-      if (!targetInstances.find((targetInstance) => targetInstance[filterKey] == item)) {
-        throw new Error(`"${item}" not found in ${targetCollection.model.name} ${filterKey}`);
-      }
-    });
+		// check if all items are found
+		items.forEach((item) => {
+			if (
+				!targetInstances.find(
+					(targetInstance) => targetInstance[filterKey] == item,
+				)
+			) {
+				throw new Error(
+					`"${item}" not found in ${targetCollection.model.name} ${filterKey}`,
+				);
+			}
+		});
 
-    const primaryKeyAttribute = targetCollection.model.primaryKeyAttribute;
-    const targetKey = field.options.targetKey;
+		const primaryKeyAttribute = targetCollection.model.primaryKeyAttribute;
+		const targetKey = field.options.targetKey;
 
-    const values = targetInstances.map((targetInstance) => {
-      const result = {
-        [targetKey]: targetInstance[targetKey],
-      };
+		const values = targetInstances.map((targetInstance) => {
+			const result = {
+				[targetKey]: targetInstance[targetKey],
+			};
 
-      if (targetKey !== primaryKeyAttribute) {
-        result[primaryKeyAttribute] = targetInstance[primaryKeyAttribute];
-      }
+			if (targetKey !== primaryKeyAttribute) {
+				result[primaryKeyAttribute] = targetInstance[primaryKeyAttribute];
+			}
 
-      return result;
-    });
-    return values;
-  }
+			return result;
+		});
+		return values;
+	}
 }

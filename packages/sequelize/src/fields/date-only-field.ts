@@ -1,12 +1,12 @@
-import { type BaseColumnFieldOptions, Field } from './field';
-import { DataTypes } from 'sequelize';
+import { type BaseColumnFieldOptions, Field } from "./field";
+import { DataTypes } from "sequelize";
 
 export class DateOnlyField extends Field {
-  get dataType(): any {
-    return DataTypes.DATEONLY;
-  }
+	get dataType(): any {
+		return DataTypes.DATEONLY;
+	}
 }
 
 export interface DateOnlyFieldOptions extends BaseColumnFieldOptions {
-  type: 'dateOnly';
+	type: "dateOnly";
 }

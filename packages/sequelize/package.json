@@ -3,28 +3,24 @@
   "version": "0.0.1-beta.1",
   "description": "A Sequelize integration package for PaybillDev, providing database models, utilities, and ORM configurations for easy setup and management.",
   "license": "AGPL-3.0-only",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "type": "commonjs",
+  "source": "src/index.tsx",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       }
     }
   },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/index.d.ts"
-      ]
-    }
-  },
+  "sideEffects": false,
   "keywords": [
     "sequelize",
     "orm",
@@ -36,10 +32,11 @@
     "email": "ebartile@gmail.com"
   },
   "scripts": {
-    "build": "unbuild --clean",
-    "stub": "unbuild --stub",
+    "prebuild": "rm -rf dist",
+    "build": "tsup",
+    "postbuild": "attw --pack",
+    "clean": "rimraf -g {node_modules,dist,*.tsbuildinfo,.turbo,coverage,log}",
     "typecheck": "tsc --project tsconfig.json",
-    "clean": "rimraf node_modules dist .turbo coverage",
     "test": "NODE_ENV=test ENCRYPTION_FIELD_KEY='Xj8P1!zB@7qR$Lm^2&vWc#nF0*Hs9YpD' vitest",
     "cov": "NODE_ENV=test ENCRYPTION_FIELD_KEY='Xj8P1!zB@7qR$Lm^2&vWc#nF0*Hs9YpD' vitest --coverage",
     "prepublishOnly": "pnpm build"
@@ -107,7 +104,6 @@
     }
   },
   "devDependencies": {
-    "@paybilldev/tsconfig": "workspace:^",
     "@types/flat": "^5.0.5",
     "@types/glob": "^7.2.0",
     "@types/lodash": "^4.17.20",
@@ -115,6 +111,9 @@
     "@types/qs": "^6.14.0",
     "@types/semver": "7.7.0",
     "@vitest/coverage-istanbul": "^3.2.4",
+    "@arethetypeswrong/cli": "^0.18.2",
+    "rimraf": "6",
+    "tsup": "^8.5.0",
     "ts-node": "10.9.2",
     "typescript": "catalog:",
     "vitest": "^3.0.5"

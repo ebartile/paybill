@@ -1,50 +1,58 @@
-import { Database, mockDatabase } from '../../src';
+import { Database, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('default value', () => {
-  let db: Database;
+describe("default value", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({});
+	beforeEach(async () => {
+		db = await mockDatabase({});
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should sync field default value', async () => {
-    const User = db.collection({
-      name: 'users',
-      fields: [
-        { type: 'string', name: 'userName', defaultValue: 'u1' },
-        { type: 'string', name: 'userEmail' },
-      ],
-    });
+	it("should sync field default value", async () => {
+		const User = db.collection({
+			name: "users",
+			fields: [
+				{ type: "string", name: "userName", defaultValue: "u1" },
+				{ type: "string", name: "userEmail" },
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const getFieldDefaultValue = (tableInfo, fieldName) => {
-      const columnName = User.model.rawAttributes[fieldName].field;
+		const getFieldDefaultValue = (tableInfo, fieldName) => {
+			const columnName = User.model.rawAttributes[fieldName].field;
 
-      const field = tableInfo[columnName];
+			const field = tableInfo[columnName];
 
-      return field.defaultValue || null;
-    };
+			return field.defaultValue || null;
+		};
 
-    const userTableInfo: any = await db.sequelize.getQueryInterface().describeTable(User.getTableNameWithSchema());
+		const userTableInfo: any = await db.sequelize
+			.getQueryInterface()
+			.describeTable(User.getTableNameWithSchema());
 
-    expect(getFieldDefaultValue(userTableInfo, 'userName')).toBe('u1');
-    expect(getFieldDefaultValue(userTableInfo, 'userEmail')).toBeNull();
+		expect(getFieldDefaultValue(userTableInfo, "userName")).toBe("u1");
+		expect(getFieldDefaultValue(userTableInfo, "userEmail")).toBeNull();
 
-    User.setField('userName', { type: 'string', name: 'userName' });
-    User.setField('userEmail', { type: 'string', name: 'userEmail', defaultValue: 'e1' });
+		User.setField("userName", { type: "string", name: "userName" });
+		User.setField("userEmail", {
+			type: "string",
+			name: "userEmail",
+			defaultValue: "e1",
+		});
 
-    await db.sync();
-    const userTableInfo2: any = await db.sequelize.getQueryInterface().describeTable(User.getTableNameWithSchema());
+		await db.sync();
+		const userTableInfo2: any = await db.sequelize
+			.getQueryInterface()
+			.describeTable(User.getTableNameWithSchema());
 
-    expect(getFieldDefaultValue(userTableInfo2, 'userName')).toBeNull();
-    expect(getFieldDefaultValue(userTableInfo2, 'userEmail')).toBe('e1');
-  });
+		expect(getFieldDefaultValue(userTableInfo2, "userName")).toBeNull();
+		expect(getFieldDefaultValue(userTableInfo2, "userEmail")).toBe("e1");
+	});
 });

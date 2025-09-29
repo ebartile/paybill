@@ -1,137 +1,137 @@
-import { Database, mockDatabase } from '../../src';
+import { Database, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('string field', () => {
-  let db: Database;
+describe("string field", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
-    await db.clean({ drop: true });
-  });
+	beforeEach(async () => {
+		db = await mockDatabase();
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should define string with length options', async () => {
-    if(db.inDialect('sqlite')) return;
-    const Test = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name', length: 10 }],
-    });
-    await db.sync();
+	it("should define string with length options", async () => {
+		if (db.inDialect("sqlite")) return;
+		const Test = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name", length: 10 }],
+		});
+		await db.sync();
 
-    let err;
+		let err;
 
-    try {
-      await Test.repository.create({
-        values: {
-          name: '123456789011',
-        },
-      });
-    } catch (e) {
-      err = e;
-    }
+		try {
+			await Test.repository.create({
+				values: {
+					name: "123456789011",
+				},
+			});
+		} catch (e) {
+			err = e;
+		}
 
-    expect(err).toBeDefined();
-  });
+		expect(err).toBeDefined();
+	});
 
-  it('define', async () => {
-    const Test = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name' }],
-    });
-    await db.sync();
-    expect(Test.model.rawAttributes['name']).toBeDefined();
-    const model = await Test.model.create({
-      name: 'abc',
-    });
-    expect(model.toJSON()).toMatchObject({
-      name: 'abc',
-    });
-  });
+	it("define", async () => {
+		const Test = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name" }],
+		});
+		await db.sync();
+		expect(Test.model.rawAttributes["name"]).toBeDefined();
+		const model = await Test.model.create({
+			name: "abc",
+		});
+		expect(model.toJSON()).toMatchObject({
+			name: "abc",
+		});
+	});
 
-  it('set', async () => {
-    const Test = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name1' }],
-    });
-    await db.sync();
-    Test.addField('name2', { type: 'string' });
-    await db.sync({
-      alter: true,
-    });
-    expect(Test.model.rawAttributes['name1']).toBeDefined();
-    expect(Test.model.rawAttributes['name2']).toBeDefined();
-    const model = await Test.model.create({
-      name1: 'a1',
-      name2: 'a2',
-    });
-    expect(model.toJSON()).toMatchObject({
-      name1: 'a1',
-      name2: 'a2',
-    });
-  });
+	it("set", async () => {
+		const Test = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name1" }],
+		});
+		await db.sync();
+		Test.addField("name2", { type: "string" });
+		await db.sync({
+			alter: true,
+		});
+		expect(Test.model.rawAttributes["name1"]).toBeDefined();
+		expect(Test.model.rawAttributes["name2"]).toBeDefined();
+		const model = await Test.model.create({
+			name1: "a1",
+			name2: "a2",
+		});
+		expect(model.toJSON()).toMatchObject({
+			name1: "a1",
+			name2: "a2",
+		});
+	});
 
-  it('model hook', async () => {
-    const collection = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name' }],
-    });
-    await db.sync();
-    collection.model.beforeCreate((model) => {
-      const changed = model.changed();
-      for (const name of changed || []) {
-        model.set(name, `${model.get(name)}111`);
-      }
-    });
-    collection.addField('name2', { type: 'string' });
-    await db.sync({
-      alter: true,
-    });
-    const model = await collection.model.create({
-      name: 'n1',
-      name2: 'n2',
-    });
-    expect(model.toJSON()).toMatchObject({
-      name: 'n1111',
-      name2: 'n2111',
-    });
-  });
+	it("model hook", async () => {
+		const collection = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name" }],
+		});
+		await db.sync();
+		collection.model.beforeCreate((model) => {
+			const changed = model.changed();
+			for (const name of changed || []) {
+				model.set(name, `${model.get(name)}111`);
+			}
+		});
+		collection.addField("name2", { type: "string" });
+		await db.sync({
+			alter: true,
+		});
+		const model = await collection.model.create({
+			name: "n1",
+			name2: "n2",
+		});
+		expect(model.toJSON()).toMatchObject({
+			name: "n1111",
+			name2: "n2111",
+		});
+	});
 
-  it('trim', async () => {
-    const collection = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name', trim: true }],
-    });
-    await db.sync();
-    const model = await collection.model.create({
-      name: '  n1\n ',
-    });
-    expect(model.get('name')).toBe('n1');
-  });
+	it("trim", async () => {
+		const collection = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name", trim: true }],
+		});
+		await db.sync();
+		const model = await collection.model.create({
+			name: "  n1\n ",
+		});
+		expect(model.get("name")).toBe("n1");
+	});
 
-  it('trim when value is null should be null', async () => {
-    const collection = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name', trim: true }],
-    });
-    await db.sync();
-    const model = await collection.model.create({
-      name: null,
-    });
-    expect(model.get('name')).toBeFalsy();
-  });
+	it("trim when value is null should be null", async () => {
+		const collection = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name", trim: true }],
+		});
+		await db.sync();
+		const model = await collection.model.create({
+			name: null,
+		});
+		expect(model.get("name")).toBeFalsy();
+	});
 
-  it('when value is number should be convert to string', async () => {
-    const collection = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name', trim: true }],
-    });
-    await db.sync();
-    const model = await collection.model.create({
-      name: 123,
-    });
-    expect(model.get('name')).toBe('123');
-  });
+	it("when value is number should be convert to string", async () => {
+		const collection = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name", trim: true }],
+		});
+		await db.sync();
+		const model = await collection.model.create({
+			name: 123,
+		});
+		expect(model.get("name")).toBe("123");
+	});
 });

@@ -1,108 +1,112 @@
-import { mockDatabase, Database } from '../../src';
+import { mockDatabase, Database } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('empty table', () => {
-  let db: Database;
-  const syncOptions = {
-    alter: {
-      drop: false,
-    },
-    force: false,
-  };
+describe("empty table", () => {
+	let db: Database;
+	const syncOptions = {
+		alter: {
+			drop: false,
+		},
+		force: false,
+	};
 
-  beforeEach(async () => {
-    db = await mockDatabase({});
+	beforeEach(async () => {
+		db = await mockDatabase({});
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should change primary key after insert data', async () => {
-    const empty = db.collection({
-      name: 'empty',
-      autoGenId: false,
-      timestamps: false,
-    });
+	it("should change primary key after insert data", async () => {
+		const empty = db.collection({
+			name: "empty",
+			autoGenId: false,
+			timestamps: false,
+		});
 
-    await db.sync(syncOptions);
+		await db.sync(syncOptions);
 
-    empty.setField('code', {
-      type: 'string',
-      primaryKey: true,
-    });
+		empty.setField("code", {
+			type: "string",
+			primaryKey: true,
+		});
 
-    await db.sync(syncOptions);
-    await empty.repository.create({
-      values: [
-        {
-          code: 'code1',
-        },
-        {
-          code: 'code2',
-        },
-      ],
-    });
+		await db.sync(syncOptions);
+		await empty.repository.create({
+			values: [
+				{
+					code: "code1",
+				},
+				{
+					code: "code2",
+				},
+			],
+		});
 
-    // remove code field
-    await empty.removeFieldFromDb('code');
-    await db.sync(syncOptions);
+		// remove code field
+		await empty.removeFieldFromDb("code");
+		await db.sync(syncOptions);
 
-    empty.setField('code2', {
-      type: 'string',
-      primaryKey: true,
-    });
+		empty.setField("code2", {
+			type: "string",
+			primaryKey: true,
+		});
 
-    await db.sync(syncOptions);
+		await db.sync(syncOptions);
 
-    await empty.repository.create({
-      values: [
-        {
-          code2: 'code1',
-        },
-        {
-          code2: 'code2',
-        },
-      ],
-    });
-  });
+		await empty.repository.create({
+			values: [
+				{
+					code2: "code1",
+				},
+				{
+					code2: "code2",
+				},
+			],
+		});
+	});
 
-  it('should add primary key field into empty table', async () => {
-    if(db.inDialect('sqlite')) return;
-    const empty = db.collection({
-      name: 'empty',
-      autoGenId: false,
-    });
+	it("should add primary key field into empty table", async () => {
+		if (db.inDialect("sqlite")) return;
+		const empty = db.collection({
+			name: "empty",
+			autoGenId: false,
+		});
 
-    await db.sync(syncOptions);
+		await db.sync(syncOptions);
 
-    empty.setField('code', {
-      type: 'string',
-      primaryKey: true,
-    });
+		empty.setField("code", {
+			type: "string",
+			primaryKey: true,
+		});
 
-    await db.sync(syncOptions);
+		await db.sync(syncOptions);
 
-    const emptyInfo = await db.sequelize.getQueryInterface().describeTable(empty.getTableNameWithSchema());
-    expect(emptyInfo.code.primaryKey).toBeTruthy();
+		const emptyInfo = await db.sequelize
+			.getQueryInterface()
+			.describeTable(empty.getTableNameWithSchema());
+		expect(emptyInfo.code.primaryKey).toBeTruthy();
 
-    const empty2 = db.collection({
-      name: 'empty2',
-      autoGenId: false,
-    });
+		const empty2 = db.collection({
+			name: "empty2",
+			autoGenId: false,
+		});
 
-    await db.sync(syncOptions);
+		await db.sync(syncOptions);
 
-    empty2.setField('code', {
-      type: 'string',
-      primaryKey: true,
-    });
+		empty2.setField("code", {
+			type: "string",
+			primaryKey: true,
+		});
 
-    await db.sync(syncOptions);
+		await db.sync(syncOptions);
 
-    const empty2Info = await db.sequelize.getQueryInterface().describeTable(empty2.getTableNameWithSchema());
-    expect(empty2Info.code.primaryKey).toBeTruthy();
-  });
+		const empty2Info = await db.sequelize
+			.getQueryInterface()
+			.describeTable(empty2.getTableNameWithSchema());
+		expect(empty2Info.code.primaryKey).toBeTruthy();
+	});
 });

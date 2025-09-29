@@ -1,3 +1,3 @@
-import { ToManyInterface } from './to-many-interface';
+import { ToManyInterface } from "./to-many-interface";
 
 export class ManyToManyInterface extends ToManyInterface {}

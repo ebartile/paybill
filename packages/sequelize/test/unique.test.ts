@@ -1,115 +1,115 @@
-import { mockDatabase, Database } from '../src';
+import { mockDatabase, Database } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('unique field', () => {
-  let db: Database;
+describe("unique field", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({
-      logging: console.log,
-    });
+	beforeEach(async () => {
+		db = await mockDatabase({
+			logging: console.log,
+		});
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should not transform empty string to null when field is not unique', async () => {
-    const User = db.collection({
-      name: 'users',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-      ],
-    });
+	it("should not transform empty string to null when field is not unique", async () => {
+		const User = db.collection({
+			name: "users",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    await User.repository.create({
-      values: [
-        {},
-        {
-          name: '',
-        },
-        {
-          name: 'user3',
-        },
-      ],
-    });
+		await User.repository.create({
+			values: [
+				{},
+				{
+					name: "",
+				},
+				{
+					name: "user3",
+				},
+			],
+		});
 
-    const u3 = await User.repository.findOne({
-      filter: {
-        name: 'user3',
-      },
-    });
+		const u3 = await User.repository.findOne({
+			filter: {
+				name: "user3",
+			},
+		});
 
-    await User.repository.update({
-      filter: {
-        id: u3.id,
-      },
-      values: {
-        name: '',
-      },
-    });
+		await User.repository.update({
+			filter: {
+				id: u3.id,
+			},
+			values: {
+				name: "",
+			},
+		});
 
-    await u3.reload();
-    expect(u3.get('name')).toBe('');
-  });
+		await u3.reload();
+		expect(u3.get("name")).toBe("");
+	});
 
-  it('should transform empty string to null when field is unique', async () => {
-    const User = db.collection({
-      name: 'users',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-          unique: true,
-        },
-      ],
-    });
+	it("should transform empty string to null when field is unique", async () => {
+		const User = db.collection({
+			name: "users",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+					unique: true,
+				},
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    await User.repository.create({
-      values: [
-        {},
-        {
-          name: '',
-        },
-        {
-          name: 'user3',
-        },
-      ],
-    });
+		await User.repository.create({
+			values: [
+				{},
+				{
+					name: "",
+				},
+				{
+					name: "user3",
+				},
+			],
+		});
 
-    const u3 = await User.repository.findOne({
-      filter: {
-        name: 'user3',
-      },
-    });
+		const u3 = await User.repository.findOne({
+			filter: {
+				name: "user3",
+			},
+		});
 
-    let error;
+		let error;
 
-    try {
-      await User.repository.update({
-        filter: {
-          id: u3.id,
-        },
-        values: {
-          name: '',
-        },
-      });
-    } catch (e) {
-      error = e;
-    }
+		try {
+			await User.repository.update({
+				filter: {
+					id: u3.id,
+				},
+				values: {
+					name: "",
+				},
+			});
+		} catch (e) {
+			error = e;
+		}
 
-    expect(error).toBeUndefined();
+		expect(error).toBeUndefined();
 
-    await u3.reload();
-    expect(u3.get('name')).toBe(null);
-  });
+		await u3.reload();
+		expect(u3.get("name")).toBe(null);
+	});
 });

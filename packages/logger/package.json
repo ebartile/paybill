@@ -1,0 +1,65 @@
+{
+  "name": "@paybilldev/logger",
+  "version": "0.0.1-beta.1",
+  "description": "logger sdk",
+  "license": "AGPL-3.0-only",
+  "type": "commonjs",
+  "source": "src/index.tsx",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "sideEffects": false,
+  "keywords": [
+    "logger"
+  ],
+  "author": {
+    "name": "ebartile",
+    "email": "ebartile@gmail.com"
+  },
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "tsup",
+    "postbuild": "attw --pack",
+    "clean": "rimraf -g {node_modules,dist,*.tsbuildinfo,.turbo,coverage,log}",
+    "typecheck": "tsc --project tsconfig.json",
+    "test": "NODE_ENV=test vitest",
+    "cov": "NODE_ENV=test vitest --coverage",
+    "prepublishOnly": "pnpm build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paybilldev/paybill.git",
+    "directory": "packages/logger"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "safe-stable-stringify": "^2.5.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/node": "20.17.10",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "fs-extra": "11.3.1",
+    "rimraf": "6",
+    "threads": "1.7.0",
+    "ts-node": "10.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "catalog:",
+    "vitest": "^3.0.5"
+  }
+}

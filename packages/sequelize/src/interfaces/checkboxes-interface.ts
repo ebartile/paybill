@@ -1,3 +1,3 @@
-import { MultipleSelectInterface } from './multiple-select-interface';
+import { MultipleSelectInterface } from "./multiple-select-interface";
 
 export class CheckboxesInterface extends MultipleSelectInterface {}

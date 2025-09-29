@@ -1,31 +1,31 @@
-import { Op } from 'sequelize';
+import { Op } from "sequelize";
 
 export default {
-  $isFalsy(value) {
-    if (value === true || value === 'true') {
-      return {
-        [Op.or]: {
-          [Op.is]: null,
-          [Op.eq]: false,
-        },
-      };
-    }
-    return {
-      [Op.eq]: true,
-    };
-  },
+	$isFalsy(value) {
+		if (value === true || value === "true") {
+			return {
+				[Op.or]: {
+					[Op.is]: null,
+					[Op.eq]: false,
+				},
+			};
+		}
+		return {
+			[Op.eq]: true,
+		};
+	},
 
-  $isTruly(value) {
-    if (value === true || value === 'true') {
-      return {
-        [Op.eq]: true,
-      };
-    }
-    return {
-      [Op.or]: {
-        [Op.is]: null,
-        [Op.eq]: false,
-      },
-    };
-  },
+	$isTruly(value) {
+		if (value === true || value === "true") {
+			return {
+				[Op.eq]: true,
+			};
+		}
+		return {
+			[Op.or]: {
+				[Op.is]: null,
+				[Op.eq]: false,
+			},
+		};
+	},
 } as Record<string, any>;

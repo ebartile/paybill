@@ -1,214 +1,226 @@
-import crypto from 'crypto';
-import Database from '../database';
-import { IdentifierError } from '../errors/identifier-error';
-import lodash from 'lodash';
-import { getNumberPrecision, toFixed } from '@rc-component/mini-decimal';
+import crypto from "crypto";
+import Database from "../database";
+import { IdentifierError } from "../errors/identifier-error";
+import lodash from "lodash";
+import { getNumberPrecision, toFixed } from "@rc-component/mini-decimal";
 
 let IDX = 36,
-  HEX = '';
+	HEX = "";
 while (IDX--) HEX += IDX.toString(36);
 
 export const waitSecond = async (timeout = 1000) => {
-  await new Promise((resolve) => setTimeout(resolve, timeout));
+	await new Promise((resolve) => setTimeout(resolve, timeout));
 };
 
 export function uid(len?: number) {
-  let str = '',
-    num = len || 11;
-  while (num--) str += HEX[(Math.random() * 36) | 0];
-  return str;
+	let str = "",
+		num = len || 11;
+	while (num--) str += HEX[(Math.random() * 36) | 0];
+	return str;
 }
 
 export function isValidFilter(condition: any) {
-  if (!condition) {
-    return false;
-  }
+	if (!condition) {
+		return false;
+	}
 
-  const groups = [condition.$and, condition.$or].filter(Boolean);
+	const groups = [condition.$and, condition.$or].filter(Boolean);
 
-  if (groups.length == 0) {
-    return Object.keys(condition).length > 0;
-  }
+	if (groups.length == 0) {
+		return Object.keys(condition).length > 0;
+	}
 
-  return groups.some((item) => {
-    if (Array.isArray(item)) {
-      return item.some(isValidFilter);
-    }
+	return groups.some((item) => {
+		if (Array.isArray(item)) {
+			return item.some(isValidFilter);
+		}
 
-    if (item.$and || item.$or) {
-      return isValidFilter(item);
-    }
+		if (item.$and || item.$or) {
+			return isValidFilter(item);
+		}
 
-    const [name] = Object.keys(item);
-    if (!name || !item[name]) {
-      return false;
-    }
-    const [op] = Object.keys(item[name]);
+		const [name] = Object.keys(item);
+		if (!name || !item[name]) {
+			return false;
+		}
+		const [op] = Object.keys(item[name]);
 
-    if (!op || typeof item[name][op] === 'undefined') {
-      return false;
-    }
+		if (!op || typeof item[name][op] === "undefined") {
+			return false;
+		}
 
-    return true;
-  });
+		return true;
+	});
 }
 
 export function toFixedByStep(value: any, step: string | number) {
-  if (typeof value === 'undefined' || value === null || value === '') {
-    return '';
-  }
-  const precision = getNumberPrecision(step);
-  // return parseFloat(String(value)).toFixed(precision);
-  return toFixed(String(value), '.', precision);
+	if (typeof value === "undefined" || value === null || value === "") {
+		return "";
+	}
+	const precision = getNumberPrecision(step);
+	// return parseFloat(String(value)).toFixed(precision);
+	return toFixed(String(value), ".", precision);
 }
 
 export function md5(value: string) {
-  return crypto.createHash('md5').update(value).digest('hex');
+	return crypto.createHash("md5").update(value).digest("hex");
 }
 
 const MAX_IDENTIFIER_LENGTH = 63;
 
 export function checkIdentifier(value: string) {
-  if (value.length > MAX_IDENTIFIER_LENGTH) {
-    throw new IdentifierError(`Identifier ${value} is too long`);
-  }
+	if (value.length > MAX_IDENTIFIER_LENGTH) {
+		throw new IdentifierError(`Identifier ${value} is too long`);
+	}
 }
 
 export function getTableName(collectionName: string, options) {
-  return options.underscored ? snakeCase(collectionName) : collectionName;
+	return options.underscored ? snakeCase(collectionName) : collectionName;
 }
 
 export function snakeCase(name: string) {
-  return lodash.snakeCase(name);
+	return lodash.snakeCase(name);
 }
 
 function patchShowConstraintsQuery(queryGenerator, db) {
-  queryGenerator.showConstraintsQuery = (tableName, constraintName) => {
-    const lines = [
-      'SELECT constraint_catalog AS "constraintCatalog",',
-      'constraint_schema AS "constraintSchema",',
-      'constraint_name AS "constraintName",',
-      'table_catalog AS "tableCatalog",',
-      'table_schema AS "tableSchema",',
-      'table_name AS "tableName",',
-      'constraint_type AS "constraintType",',
-      'is_deferrable AS "isDeferrable",',
-      'initially_deferred AS "initiallyDeferred"',
-      'from INFORMATION_SCHEMA.table_constraints',
-      `WHERE table_name='${lodash.isPlainObject(tableName) ? tableName.tableName : tableName}'`,
-    ];
+	queryGenerator.showConstraintsQuery = (tableName, constraintName) => {
+		const lines = [
+			'SELECT constraint_catalog AS "constraintCatalog",',
+			'constraint_schema AS "constraintSchema",',
+			'constraint_name AS "constraintName",',
+			'table_catalog AS "tableCatalog",',
+			'table_schema AS "tableSchema",',
+			'table_name AS "tableName",',
+			'constraint_type AS "constraintType",',
+			'is_deferrable AS "isDeferrable",',
+			'initially_deferred AS "initiallyDeferred"',
+			"from INFORMATION_SCHEMA.table_constraints",
+			`WHERE table_name='${lodash.isPlainObject(tableName) ? tableName.tableName : tableName}'`,
+		];
 
-    if (constraintName) {
-      lines.push(`AND constraint_name='${constraintName}'`);
-    }
+		if (constraintName) {
+			lines.push(`AND constraint_name='${constraintName}'`);
+		}
 
-    if (lodash.isPlainObject(tableName) && tableName.schema) {
-      lines.push(`AND table_schema='${tableName.schema}'`);
-    }
+		if (lodash.isPlainObject(tableName) && tableName.schema) {
+			lines.push(`AND table_schema='${tableName.schema}'`);
+		}
 
-    return lines.join(' ');
-  };
+		return lines.join(" ");
+	};
 }
 
 function patchDescribeTableQuery(queryGenerator) {
-  const describeTableQuery = function (tableName, schema) {
-    schema = schema || this.options.schema || 'public';
+	const describeTableQuery = function (tableName, schema) {
+		schema = schema || this.options.schema || "public";
 
-    return (
-      'SELECT ' +
-      'pk.constraint_type as "Constraint",' +
-      'c.column_name as "Field", ' +
-      'c.column_default as "Default",' +
-      'c.is_nullable as "Null", ' +
-      "(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as \"Type\", " +
-      '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", ' +
-      '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND st.schemaname = c.table_schema) AS "Comment" ' +
-      'FROM information_schema.columns c ' +
-      'LEFT JOIN (SELECT tc.table_schema, tc.table_name, ' +
-      'cu.column_name, tc.constraint_type ' +
-      'FROM information_schema.TABLE_CONSTRAINTS tc ' +
-      'JOIN information_schema.KEY_COLUMN_USAGE  cu ' +
-      'ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name ' +
-      'and tc.constraint_name=cu.constraint_name ' +
-      "and tc.constraint_type='PRIMARY KEY') pk " +
-      'ON pk.table_schema=c.table_schema ' +
-      'AND pk.table_name=c.table_name ' +
-      'AND pk.column_name=c.column_name ' +
-      `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`
-    );
-  };
+		return (
+			"SELECT " +
+			'pk.constraint_type as "Constraint",' +
+			'c.column_name as "Field", ' +
+			'c.column_default as "Default",' +
+			'c.is_nullable as "Null", ' +
+			"(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as \"Type\", " +
+			'(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", ' +
+			'(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND st.schemaname = c.table_schema) AS "Comment" ' +
+			"FROM information_schema.columns c " +
+			"LEFT JOIN (SELECT tc.table_schema, tc.table_name, " +
+			"cu.column_name, tc.constraint_type " +
+			"FROM information_schema.TABLE_CONSTRAINTS tc " +
+			"JOIN information_schema.KEY_COLUMN_USAGE  cu " +
+			"ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name " +
+			"and tc.constraint_name=cu.constraint_name " +
+			"and tc.constraint_type='PRIMARY KEY') pk " +
+			"ON pk.table_schema=c.table_schema " +
+			"AND pk.table_name=c.table_name " +
+			"AND pk.column_name=c.column_name " +
+			`WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`
+		);
+	};
 
-  queryGenerator.describeTableQuery = describeTableQuery.bind(queryGenerator);
+	queryGenerator.describeTableQuery = describeTableQuery.bind(queryGenerator);
 }
 
 export function patchSequelizeQueryInterface(db: Database) {
-  if (db.inDialect('postgres')) {
-    //@ts-ignore
-    const queryGenerator = db.sequelize.dialect.queryGenerator;
-    patchShowConstraintsQuery(queryGenerator, db);
-    patchDescribeTableQuery(queryGenerator);
-  }
+	if (db.inDialect("postgres")) {
+		//@ts-ignore
+		const queryGenerator = db.sequelize.dialect.queryGenerator;
+		patchShowConstraintsQuery(queryGenerator, db);
+		patchDescribeTableQuery(queryGenerator);
+	}
 }
 
 export function percent2float(value: string) {
-  if (!value.endsWith('%')) {
-    return NaN;
-  }
-  const val = value.substring(0, value.length - 1);
-  if (isNaN(+val)) {
-    return NaN;
-  }
-  const index = value.indexOf('.');
-  if (index === -1) {
-    return parseFloat(value) / 100;
-  }
-  const repeat = value.length - index - 2;
-  const v = parseInt('1' + '0'.repeat(repeat));
-  return (parseFloat(value) * v) / (100 * v);
+	if (!value.endsWith("%")) {
+		return NaN;
+	}
+	const val = value.substring(0, value.length - 1);
+	if (isNaN(+val)) {
+		return NaN;
+	}
+	const index = value.indexOf(".");
+	if (index === -1) {
+		return parseFloat(value) / 100;
+	}
+	const repeat = value.length - index - 2;
+	const v = parseInt("1" + "0".repeat(repeat));
+	return (parseFloat(value) * v) / (100 * v);
 }
 
 export function isUndefinedOrNull(value: any) {
-  return typeof value === 'undefined' || value === null;
+	return typeof value === "undefined" || value === null;
 }
 
 export function isStringOrNumber(value: any) {
-  return typeof value === 'string' || typeof value === 'number';
+	return typeof value === "string" || typeof value === "number";
 }
 
 export function getKeysByPrefix(keys: string[], prefix: string) {
-  return keys.filter((key) => key.startsWith(`${prefix}.`)).map((key) => key.substring(prefix.length + 1));
+	return keys
+		.filter((key) => key.startsWith(`${prefix}.`))
+		.map((key) => key.substring(prefix.length + 1));
 }
 
-export function processIncludes(includes: any[], model: any, parentAs = '') {
-  includes.forEach((include: { association: string; include?: any[] }, index: number) => {
-    // Process current level
-    const association = model.associations[include.association];
-    if (association?.generateInclude) {
-      includes[index] = {
-        ...include,
-        ...association.generateInclude(parentAs),
-      };
-    }
+export function processIncludes(includes: any[], model: any, parentAs = "") {
+	includes.forEach(
+		(include: { association: string; include?: any[] }, index: number) => {
+			// Process current level
+			const association = model.associations[include.association];
+			if (association?.generateInclude) {
+				includes[index] = {
+					...include,
+					...association.generateInclude(parentAs),
+				};
+			}
 
-    // Recursively process nested includes if they exist
-    if (include.include && Array.isArray(include.include) && include.include.length > 0) {
-      // Get the associated model for the next level
-      const nextModel = association?.target;
-      if (!nextModel) {
-        return;
-      }
-      processIncludes(include.include, nextModel, parentAs ? `${parentAs}->${association.as}` : association.as);
-    }
-  });
+			// Recursively process nested includes if they exist
+			if (
+				include.include &&
+				Array.isArray(include.include) &&
+				include.include.length > 0
+			) {
+				// Get the associated model for the next level
+				const nextModel = association?.target;
+				if (!nextModel) {
+					return;
+				}
+				processIncludes(
+					include.include,
+					nextModel,
+					parentAs ? `${parentAs}->${association.as}` : association.as,
+				);
+			}
+		},
+	);
 
-  return includes;
+	return includes;
 }
 
 export const isPlainObject = (value) => {
-  if (Object.prototype.toString.call(value) !== '[object Object]') {
-    return false;
-  }
+	if (Object.prototype.toString.call(value) !== "[object Object]") {
+		return false;
+	}
 
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === null || prototype === Object.prototype;
+	const prototype = Object.getPrototypeOf(value);
+	return prototype === null || prototype === Object.prototype;
 };

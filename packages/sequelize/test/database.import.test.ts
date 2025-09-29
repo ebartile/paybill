@@ -1,34 +1,34 @@
-import * as path from 'path';
-import { Database, mockDatabase } from '../src';
+import * as path from "path";
+import { Database, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-describe('database', () => {
-  let db: Database;
+describe("database", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
-    await db.clean({ drop: true });
-  });
+	beforeEach(async () => {
+		db = await mockDatabase();
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  test('import', async () => {
-    await db.import({
-      directory: path.resolve(__dirname, './fixtures/c0'),
-    });
-    await db.import({
-      directory: path.resolve(__dirname, './fixtures/c1'),
-    });
-    await db.import({
-      directory: path.resolve(__dirname, './fixtures/c2'),
-    });
+	test("import", async () => {
+		await db.import({
+			directory: path.resolve(__dirname, "./fixtures/c0"),
+		});
+		await db.import({
+			directory: path.resolve(__dirname, "./fixtures/c1"),
+		});
+		await db.import({
+			directory: path.resolve(__dirname, "./fixtures/c2"),
+		});
 
-    const test = db.getCollection('tests');
+		const test = db.getCollection("tests");
 
-    expect(test.getField('n0')).toBeDefined();
-    expect(test.getField('n1')).toBeDefined();
-    expect(test.getField('n2')).toBeDefined();
-  });
+		expect(test.getField("n0")).toBeDefined();
+		expect(test.getField("n1")).toBeDefined();
+		expect(test.getField("n2")).toBeDefined();
+	});
 });

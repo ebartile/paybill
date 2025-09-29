@@ -1,32 +1,31 @@
-import { skip } from "../src"
+import { skip } from "@paybilldev/acl";
 import { describe, expect, it } from "vitest";
 
+describe("Skip Middleware", () => {
+	it("should skip middleware", async () => {
+		const skipMiddleware = skip({ resourceName: "posts", actionName: "list" });
+		const ctx: any = {
+			action: {
+				resourceName: "posts",
+				actionName: "list",
+			},
+			permission: {},
+		};
 
-describe('Skip Middleware', () => {
-  it('should skip middleware', async () => {
-    const skipMiddleware = skip({ resourceName: 'posts', actionName: 'list' });
-    const ctx: any = {
-      action: {
-        resourceName: 'posts',
-        actionName: 'list',
-      },
-      permission: {},
-    };
+		await skipMiddleware(ctx, async () => {
+			expect(ctx.permission.skip).toBeTruthy();
+		});
 
-    await skipMiddleware(ctx, async () => {
-      expect(ctx.permission.skip).toBeTruthy();
-    });
+		const ctx2: any = {
+			action: {
+				resourceName: "posts",
+				actionName: "create",
+			},
+			permission: {},
+		};
 
-    const ctx2: any = {
-      action: {
-        resourceName: 'posts',
-        actionName: 'create',
-      },
-      permission: {},
-    };
-
-    await skipMiddleware(ctx2, async () => {
-      expect(ctx2.permission.skip).toBeFalsy();
-    });
-  });
+		await skipMiddleware(ctx2, async () => {
+			expect(ctx2.permission.skip).toBeFalsy();
+		});
+	});
 });

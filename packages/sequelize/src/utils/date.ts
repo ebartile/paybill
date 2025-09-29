@@ -47,6 +47,8 @@ export const toLocal = (value: dayjs.Dayjs) => {
 	if (dayjs.isDayjs(value)) {
 		return value.startOf("second").toISOString();
 	}
+
+	return null;
 };
 
 export const convertUTCToLocal = (
@@ -59,7 +61,7 @@ export const convertUTCToLocal = (
 
 const toMoment = (val: any, options?: Str2momentOptions) => {
 	if (!val) {
-		return;
+		return null;
 	}
 	const offset = options.utcOffset || -1 * new Date().getTimezoneOffset();
 	const { gmt, picker, utc = true } = options;
@@ -116,6 +118,8 @@ const toGmtByPicker = (value: dayjs.Dayjs | dayjs.Dayjs[], picker?: any) => {
 	if (dayjs.isDayjs(value)) {
 		return toStringByPicker(value, picker);
 	}
+
+	return null;
 };
 
 export interface Moment2strOptions {

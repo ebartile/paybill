@@ -1,167 +1,181 @@
-import lodash, { omit } from 'lodash';
-import { type BelongsToOptions as SequelizeBelongsToOptions, Utils } from 'sequelize';
-import { buildReference, type Reference, type ReferencePriority } from '../features/references-map';
-import { checkIdentifier } from '../utils';
-import { type BaseRelationFieldOptions, RelationField } from './relation-field';
+import lodash, { omit } from "lodash";
+import {
+	type BelongsToOptions as SequelizeBelongsToOptions,
+	Utils,
+} from "sequelize";
+import {
+	buildReference,
+	type Reference,
+	type ReferencePriority,
+} from "../features/references-map";
+import { checkIdentifier } from "../utils";
+import { type BaseRelationFieldOptions, RelationField } from "./relation-field";
 
 export class BelongsToField extends RelationField {
-  static type = 'belongsTo';
+	static type = "belongsTo";
 
-  get dataType() {
-    return 'BelongsTo';
-  }
+	get dataType() {
+		return "BelongsTo";
+	}
 
-  get target() {
-    const { target, name } = this.options;
-    return target || Utils.pluralize(name);
-  }
+	get target() {
+		const { target, name } = this.options;
+		return target || Utils.pluralize(name);
+	}
 
-  static toReference(db, association, onDelete, priority: ReferencePriority = 'default'): Reference {
-    const targetKey = association.targetKey;
+	static toReference(
+		db,
+		association,
+		onDelete,
+		priority: ReferencePriority = "default",
+	): Reference {
+		const targetKey = association.targetKey;
 
-    return buildReference({
-      sourceCollectionName: db.modelCollection.get(association.source).name,
-      sourceField: association.foreignKey,
-      targetField: targetKey,
-      targetCollectionName: db.modelCollection.get(association.target).name,
-      onDelete: onDelete,
-      priority: priority,
-    });
-  }
+		return buildReference({
+			sourceCollectionName: db.modelCollection.get(association.source).name,
+			sourceField: association.foreignKey,
+			targetField: targetKey,
+			targetCollectionName: db.modelCollection.get(association.target).name,
+			onDelete: onDelete,
+			priority: priority,
+		});
+	}
 
-  reference(association): Reference {
-    return BelongsToField.toReference(
-      this.database,
-      association,
-      this.options.onDelete,
-      this.options.onDelete ? 'user' : 'default',
-    );
-  }
+	reference(association): Reference {
+		return BelongsToField.toReference(
+			this.database,
+			association,
+			this.options.onDelete,
+			this.options.onDelete ? "user" : "default",
+		);
+	}
 
-  checkAssociationKeys() {
-    let { foreignKey, targetKey } = this.options;
+	checkAssociationKeys() {
+		let { foreignKey, targetKey } = this.options;
 
-    if (!targetKey) {
-      targetKey = this.TargetModel.primaryKeyAttribute;
-    }
+		if (!targetKey) {
+			targetKey = this.TargetModel.primaryKeyAttribute;
+		}
 
-    if (!foreignKey) {
-      foreignKey = lodash.camelCase(`${this.name}_${targetKey}`);
-    }
+		if (!foreignKey) {
+			foreignKey = lodash.camelCase(`${this.name}_${targetKey}`);
+		}
 
-    const targetKeyAttribute = this.TargetModel.rawAttributes[targetKey];
-    const foreignKeyAttribute = this.collection.model.rawAttributes[foreignKey];
+		const targetKeyAttribute = this.TargetModel.rawAttributes[targetKey];
+		const foreignKeyAttribute = this.collection.model.rawAttributes[foreignKey];
 
-    if (!foreignKeyAttribute || !targetKeyAttribute) {
-      // skip check if foreign key not exists
-      return;
-    }
+		if (!foreignKeyAttribute || !targetKeyAttribute) {
+			// skip check if foreign key not exists
+			return;
+		}
 
-    const foreignKeyType = foreignKeyAttribute.type.constructor.toString();
-    const targetKeyType = targetKeyAttribute.type.constructor.toString();
+		const foreignKeyType = foreignKeyAttribute.type.constructor.toString();
+		const targetKeyType = targetKeyAttribute.type.constructor.toString();
 
-    if (!this.keyPairsTypeMatched(foreignKeyType, targetKeyType)) {
-      throw new Error(
-        `Foreign key "${foreignKey}" type "${foreignKeyType}" does not match target key "${targetKey}" type "${targetKeyType}" in belongs to relation "${this.name}" of collection "${this.collection.name}"`,
-      );
-    }
-  }
+		if (!this.keyPairsTypeMatched(foreignKeyType, targetKeyType)) {
+			throw new Error(
+				`Foreign key "${foreignKey}" type "${foreignKeyType}" does not match target key "${targetKey}" type "${targetKeyType}" in belongs to relation "${this.name}" of collection "${this.collection.name}"`,
+			);
+		}
+	}
 
-  bind() {
-    const { database, collection } = this.context;
-    const Target = this.TargetModel;
+	bind() {
+		const { database, collection } = this.context;
+		const Target = this.TargetModel;
 
-    // if target model not exists, add it to pending field,
-    // it will bind later
-    if (!Target) {
-      database.addPendingField(this);
-      return false;
-    }
+		// if target model not exists, add it to pending field,
+		// it will bind later
+		if (!Target) {
+			database.addPendingField(this);
+			return false;
+		}
 
-    this.checkAssociationKeys();
+		this.checkAssociationKeys();
 
-    if (collection.model.associations[this.name]) {
-      delete collection.model.associations[this.name];
-    }
+		if (collection.model.associations[this.name]) {
+			delete collection.model.associations[this.name];
+		}
 
-    // define relation on sequelize model
-    const association = collection.model.belongsTo(Target, {
-      as: this.name,
-      constraints: false,
-      ...omit(this.options, ['name', 'type', 'target', 'onDelete']),
-    });
+		// define relation on sequelize model
+		const association = collection.model.belongsTo(Target, {
+			as: this.name,
+			constraints: false,
+			...omit(this.options, ["name", "type", "target", "onDelete"]),
+		});
 
-    // inverse relation
-    // this.TargetModel.hasMany(collection.model);
+		// inverse relation
+		// this.TargetModel.hasMany(collection.model);
 
-    // After establishing the relationship, delete it from the pending list
-    database.removePendingField(this);
+		// After establishing the relationship, delete it from the pending list
+		database.removePendingField(this);
 
-    if (!this.options.foreignKey) {
-      this.options.foreignKey = association.foreignKey;
-    }
+		if (!this.options.foreignKey) {
+			this.options.foreignKey = association.foreignKey;
+		}
 
-    if (!this.options.targetKey) {
-      // @ts-ignore
-      this.options.targetKey = association.targetKey;
-    }
+		if (!this.options.targetKey) {
+			// @ts-ignore
+			this.options.targetKey = association.targetKey;
+		}
 
-    try {
-      checkIdentifier(this.options.foreignKey);
-    } catch (error) {
-      this.unbind();
-      throw error;
-    }
+		try {
+			checkIdentifier(this.options.foreignKey);
+		} catch (error) {
+			this.unbind();
+			throw error;
+		}
 
-    if (!this.options.sourceKey) {
-      // @ts-ignore
-      this.options.sourceKey = association.sourceKey;
-    }
+		if (!this.options.sourceKey) {
+			// @ts-ignore
+			this.options.sourceKey = association.sourceKey;
+		}
 
-    this.collection.addIndex([this.options.foreignKey]);
+		this.collection.addIndex([this.options.foreignKey]);
 
-    const reference = this.reference(association);
+		const reference = this.reference(association);
 
-    this.database.referenceMap.addReference(reference);
+		this.database.referenceMap.addReference(reference);
 
-    return true;
-  }
+		return true;
+	}
 
-  unbind() {
-    const { database, collection } = this.context;
-    // If the relationship field is deleted before it is established, the relationship field to be established will also be deleted simultaneously
-    database.removePendingField(this);
-    // If the foreign key is not explicitly created and the relationship table has no reverse-association field, the foreign key will also be deleted when the relationship is deleted.
-    const tcoll = database.collections.get(this.target);
-    const foreignKey = this.options.foreignKey;
-    const field1 = collection.getField(foreignKey);
+	unbind() {
+		const { database, collection } = this.context;
+		// If the relationship field is deleted before it is established, the relationship field to be established will also be deleted simultaneously
+		database.removePendingField(this);
+		// If the foreign key is not explicitly created and the relationship table has no reverse-association field, the foreign key will also be deleted when the relationship is deleted.
+		const tcoll = database.collections.get(this.target);
+		const foreignKey = this.options.foreignKey;
+		const field1 = collection.getField(foreignKey);
 
-    const field2 = tcoll
-      ? tcoll.findField((field) => {
-          return field.type === 'hasMany' && field.foreignKey === foreignKey;
-        })
-      : null;
+		const field2 = tcoll
+			? tcoll.findField((field) => {
+					return field.type === "hasMany" && field.foreignKey === foreignKey;
+				})
+			: null;
 
-    if (!field1 && !field2) {
-      collection.model.removeAttribute(foreignKey);
-    }
+		if (!field1 && !field2) {
+			collection.model.removeAttribute(foreignKey);
+		}
 
-    const association = collection.model.associations[this.name];
-    if (association && !this.options.inherit) {
-      const reference = this.reference(association);
-      this.database.referenceMap.removeReference(reference);
-    }
+		const association = collection.model.associations[this.name];
+		if (association && !this.options.inherit) {
+			const reference = this.reference(association);
+			this.database.referenceMap.removeReference(reference);
+		}
 
-    this.clearAccessors();
-    // Delete the associated fields of the model
-    delete collection.model.associations[this.name];
-    // @ts-ignore
-    collection.model.refreshAttributes();
-    // this.collection.removeIndex([this.options.foreignKey]);
-  }
+		this.clearAccessors();
+		// Delete the associated fields of the model
+		delete collection.model.associations[this.name];
+		// @ts-ignore
+		collection.model.refreshAttributes();
+		// this.collection.removeIndex([this.options.foreignKey]);
+	}
 }
 
-export interface BelongsToFieldOptions extends BaseRelationFieldOptions, SequelizeBelongsToOptions {
-  type: 'belongsTo';
-  target?: string;
+export interface BelongsToFieldOptions
+	extends BaseRelationFieldOptions,
+		SequelizeBelongsToOptions {
+	type: "belongsTo";
+	target?: string;
 }

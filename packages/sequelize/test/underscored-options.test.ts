@@ -1,208 +1,210 @@
-import { mockDatabase, Database } from '../src';
+import { mockDatabase, Database } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
-describe('underscored options', () => {
-  let db: Database;
+describe("underscored options", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({
-      underscored: true,
-    });
+	beforeEach(async () => {
+		db = await mockDatabase({
+			underscored: true,
+		});
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should set two field with same type', async () => {
-    const collection = db.collection({
-      name: 'test',
-      fields: [
-        {
-          type: 'string',
-          name: 'test_field',
-        },
-        {
-          type: 'string',
-          name: 'testField',
-        },
-      ],
-    });
+	it("should set two field with same type", async () => {
+		const collection = db.collection({
+			name: "test",
+			fields: [
+				{
+					type: "string",
+					name: "test_field",
+				},
+				{
+					type: "string",
+					name: "testField",
+				},
+			],
+		});
 
-    await db.sync();
-  });
+		await db.sync();
+	});
 
-  it('should not set two field with difference type but same field name', async () => {
-    const collection = db.collection({
-      name: 'test',
-      fields: [
-        {
-          type: 'string',
-          name: 'test_field',
-        },
-      ],
-    });
+	it("should not set two field with difference type but same field name", async () => {
+		const collection = db.collection({
+			name: "test",
+			fields: [
+				{
+					type: "string",
+					name: "test_field",
+				},
+			],
+		});
 
-    expect(() => {
-      collection.addField('testField', { type: 'integer' });
-    }).toThrow();
+		expect(() => {
+			collection.addField("testField", { type: "integer" });
+		}).toThrow();
 
-    expect(() => {
-      collection.addField('test123', { type: 'integer', field: 'test_field' });
-    }).toThrow();
-  });
+		expect(() => {
+			collection.addField("test123", { type: "integer", field: "test_field" });
+		}).toThrow();
+	});
 
-  it('should create index', async () => {
-    const collectionA = db.collection({
-      name: 'testCollection',
-      fields: [
-        {
-          type: 'string',
-          name: 'aField',
-        },
-        {
-          type: 'string',
-          name: 'bField',
-        },
-      ],
-      indexes: [
-        {
-          type: 'UNIQUE',
-          fields: ['aField', 'bField'],
-        },
-      ],
-    });
+	it("should create index", async () => {
+		const collectionA = db.collection({
+			name: "testCollection",
+			fields: [
+				{
+					type: "string",
+					name: "aField",
+				},
+				{
+					type: "string",
+					name: "bField",
+				},
+			],
+			indexes: [
+				{
+					type: "UNIQUE",
+					fields: ["aField", "bField"],
+				},
+			],
+		});
 
-    await db.sync();
-  });
+		await db.sync();
+	});
 
-  it('should use underscored option', async () => {
-    const collectionA = db.collection({
-      name: 'testCollection',
-      underscored: true,
-      fields: [
-        {
-          type: 'string',
-          name: 'testField',
-        },
-      ],
-    });
+	it("should use underscored option", async () => {
+		const collectionA = db.collection({
+			name: "testCollection",
+			underscored: true,
+			fields: [
+				{
+					type: "string",
+					name: "testField",
+				},
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const tableName = collectionA.model.tableName;
+		const tableName = collectionA.model.tableName;
 
-    expect(tableName.includes('test_collection')).toBeTruthy();
+		expect(tableName.includes("test_collection")).toBeTruthy();
 
-    const repository = db.getRepository('testCollection');
+		const repository = db.getRepository("testCollection");
 
-    await repository.create({
-      values: {
-        testField: 'test',
-      },
-    });
+		await repository.create({
+			values: {
+				testField: "test",
+			},
+		});
 
-    const record = await repository.findOne({});
+		const record = await repository.findOne({});
 
-    expect(record.get('testField')).toBe('test');
-  });
+		expect(record.get("testField")).toBe("test");
+	});
 
-  it('should use database options', async () => {
-    const collectionA = db.collection({
-      name: 'testCollection',
-      fields: [
-        {
-          type: 'string',
-          name: 'testField',
-        },
-      ],
-    });
+	it("should use database options", async () => {
+		const collectionA = db.collection({
+			name: "testCollection",
+			fields: [
+				{
+					type: "string",
+					name: "testField",
+				},
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const tableName = collectionA.model.tableName;
+		const tableName = collectionA.model.tableName;
 
-    expect(tableName.includes('test_collection')).toBeTruthy();
-  });
+		expect(tableName.includes("test_collection")).toBeTruthy();
+	});
 
-  test('through table', async () => {
-    db.collection({
-      name: 'posts',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-        {
-          type: 'belongsToMany',
-          name: 'tags',
-          through: 'collectionCategory',
-          target: 'tags',
-          sourceKey: 'name',
-          foreignKey: 'postsName',
-          targetKey: 'name',
-          otherKey: 'tagsName',
-        },
-      ],
-    });
+	test("through table", async () => {
+		db.collection({
+			name: "posts",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+				{
+					type: "belongsToMany",
+					name: "tags",
+					through: "collectionCategory",
+					target: "tags",
+					sourceKey: "name",
+					foreignKey: "postsName",
+					targetKey: "name",
+					otherKey: "tagsName",
+				},
+			],
+		});
 
-    db.collection({
-      name: 'tags',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-        {
-          type: 'belongsToMany',
-          name: 'posts',
-          target: 'posts',
-          through: 'collectionCategory',
-          sourceKey: 'name',
-          foreignKey: 'tagsName',
-          targetKey: 'name',
-          otherKey: 'postsName',
-        },
-      ],
-    });
+		db.collection({
+			name: "tags",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+				{
+					type: "belongsToMany",
+					name: "posts",
+					target: "posts",
+					through: "collectionCategory",
+					sourceKey: "name",
+					foreignKey: "tagsName",
+					targetKey: "name",
+					otherKey: "postsName",
+				},
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const through = db.getCollection('collectionCategory');
+		const through = db.getCollection("collectionCategory");
 
-    expect(through.model.tableName.includes('collection_category')).toBeTruthy();
-  });
+		expect(
+			through.model.tableName.includes("collection_category"),
+		).toBeTruthy();
+	});
 
-  test('db collectionExists', async () => {
-    const collectionA = db.collection({
-      name: 'testCollection',
-      underscored: true,
-      fields: [
-        {
-          type: 'string',
-          name: 'testField',
-        },
-      ],
-    });
+	test("db collectionExists", async () => {
+		const collectionA = db.collection({
+			name: "testCollection",
+			underscored: true,
+			fields: [
+				{
+					type: "string",
+					name: "testField",
+				},
+			],
+		});
 
-    expect(await db.collectionExistsInDb('testCollection')).toBeFalsy();
+		expect(await db.collectionExistsInDb("testCollection")).toBeFalsy();
 
-    await db.sync();
+		await db.sync();
 
-    expect(await db.collectionExistsInDb('testCollection')).toBeTruthy();
-  });
+		expect(await db.collectionExistsInDb("testCollection")).toBeTruthy();
+	});
 
-  it('should throw error when table names conflict', async () => {
-    db.collection({
-      name: 'b1_z',
-    });
+	it("should throw error when table names conflict", async () => {
+		db.collection({
+			name: "b1_z",
+		});
 
-    expect(() => {
-      db.collection({
-        name: 'b1Z',
-      });
-    }).toThrow();
-  });
+		expect(() => {
+			db.collection({
+				name: "b1Z",
+			});
+		}).toThrow();
+	});
 });

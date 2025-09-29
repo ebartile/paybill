@@ -1,39 +1,43 @@
-import { mockDatabase, Database } from '../../src';
+import { mockDatabase, Database } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe.skip('delete field', () => {
-  let db: Database;
+describe.skip("delete field", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({});
+	beforeEach(async () => {
+		db = await mockDatabase({});
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should delete field', async () => {
-    const User = db.collection({
-      name: 'users',
-      fields: [
-        { type: 'string', name: 'name' },
-        { type: 'string', name: 'email' },
-      ],
-    });
+	it("should delete field", async () => {
+		const User = db.collection({
+			name: "users",
+			fields: [
+				{ type: "string", name: "name" },
+				{ type: "string", name: "email" },
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const userTableInfo = await db.sequelize.getQueryInterface().describeTable(User.getTableNameWithSchema());
+		const userTableInfo = await db.sequelize
+			.getQueryInterface()
+			.describeTable(User.getTableNameWithSchema());
 
-    expect(userTableInfo.email).toBeDefined();
+		expect(userTableInfo.email).toBeDefined();
 
-    User.removeField('email');
+		User.removeField("email");
 
-    await db.sync();
+		await db.sync();
 
-    const userTableInfo2 = await db.sequelize.getQueryInterface().describeTable(User.getTableNameWithSchema());
-    expect(userTableInfo2.email).toBeUndefined();
-  });
+		const userTableInfo2 = await db.sequelize
+			.getQueryInterface()
+			.describeTable(User.getTableNameWithSchema());
+		expect(userTableInfo2.email).toBeUndefined();
+	});
 });

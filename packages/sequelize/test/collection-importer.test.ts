@@ -1,34 +1,36 @@
-import { ImporterReader } from '../src/collection-importer';
-import * as path from 'path';
-import { extend } from '../src/database';
+import { ImporterReader } from "@paybilldev/sequelize";
+import * as path from "path";
+import { extend } from "@paybilldev/sequelize";
 import { describe, expect, test } from "vitest";
 
-describe('collection importer', () => {
-  test('import reader', async () => {
-    const reader = new ImporterReader(path.resolve(__dirname, './fixtures/collections'));
+describe("collection importer", () => {
+	test("import reader", async () => {
+		const reader = new ImporterReader(
+			path.resolve(__dirname, "./fixtures/collections"),
+		);
 
-    const modules = await reader.read();
+		const modules = await reader.read();
 
-    const posts = modules.find((m) => m.name === 'posts');
+		const posts = modules.find((m) => m.name === "posts");
 
-    expect(posts).toMatchObject({
-      name: 'posts',
-      fields: [{ type: 'string', name: 'title' }],
-    });
+		expect(posts).toMatchObject({
+			name: "posts",
+			fields: [{ type: "string", name: "title" }],
+		});
 
-    posts.schema = 'test';
+		posts.schema = "test";
 
-    const modules2 = await reader.read();
-    const posts2 = modules2.find((m) => m.name === 'posts');
-    expect(posts2.schema).toBeFalsy();
-  });
+		const modules2 = await reader.read();
+		const posts2 = modules2.find((m) => m.name === "posts");
+		expect(posts2.schema).toBeFalsy();
+	});
 
-  test('extend', async () => {
-    const extendObject = extend({
-      name: 'tags',
-      fields: [{ type: 'string', name: 'title' }],
-    });
+	test("extend", async () => {
+		const extendObject = extend({
+			name: "tags",
+			fields: [{ type: "string", name: "title" }],
+		});
 
-    expect(extendObject).toHaveProperty('extend');
-  });
+		expect(extendObject).toHaveProperty("extend");
+	});
 });

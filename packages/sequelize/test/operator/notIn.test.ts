@@ -1,34 +1,34 @@
-import { Database, mockDatabase } from '../../src';
+import { Database, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('ne operator', () => {
-  let db: Database;
-  let Test;
-  beforeEach(async () => {
-    db = await mockDatabase({});
-    await db.clean({ drop: true });
+describe("ne operator", () => {
+	let db: Database;
+	let Test;
+	beforeEach(async () => {
+		db = await mockDatabase({});
+		await db.clean({ drop: true });
 
-    Test = db.collection({
-      name: 'tests',
-      fields: [{ type: 'string', name: 'name' }],
-    });
+		Test = db.collection({
+			name: "tests",
+			fields: [{ type: "string", name: "name" }],
+		});
 
-    await db.sync();
-  });
+		await db.sync();
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should notIn with null', async () => {
-    await db.getRepository('tests').create({});
+	it("should notIn with null", async () => {
+		await db.getRepository("tests").create({});
 
-    const results = await db.getRepository('tests').count({
-      filter: {
-        'name.$notIn': ['123'],
-      },
-    });
+		const results = await db.getRepository("tests").count({
+			filter: {
+				"name.$notIn": ["123"],
+			},
+		});
 
-    expect(results).toEqual(1);
-  });
+		expect(results).toEqual(1);
+	});
 });

@@ -1,60 +1,60 @@
 {
-  "$schema": "https://turborepo.org/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**", "build/**", ".docusaurus/**"]
-    },
-    "start": {
-      "dependsOn": ["build", "^start"],
-      "outputs": []
-    },
-    "dev": {
-      "dependsOn": [],
-      "cache": false
-    },
-    "clean": {
-      "dependsOn": [],
-      "cache": false
-    },
-    "test": {
-      "dependsOn": ["build", "^test"],
-      "outputs": []
-    },
-    "cov": {
-      "dependsOn": []
-    },
-    "lint": {
-      "dependsOn": [],
-      "outputs": []
-    },
-    "lint:fix": {
-      "dependsOn": ["lint"],
-      "outputs": []
-    },
-    "format": {
-      "dependsOn": [],
-      "outputs": []
-    },
-    "release": {
-      "dependsOn": ["build"],
-      "outputs": []
-    },
-    "release:no-build": {
-      "dependsOn": [],
-      "outputs": []
-    },
-    "release:canary": {
-      "dependsOn": ["build"],
-      "outputs": []
-    },
-    "prepare": {
-      "dependsOn": [],
-      "outputs": []
-    },
-    "bump": {
-      "dependsOn": [],
-      "outputs": []
-    }
-  }
+	"$schema": "https://turborepo.org/schema.json",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": [".next/**", "dist/**", "build/**", ".docusaurus/**"]
+		},
+		"start": {
+			"dependsOn": ["build", "^start"],
+			"outputs": []
+		},
+		"dev": {
+			"dependsOn": [],
+			"cache": false
+		},
+		"clean": {
+			"dependsOn": [],
+			"cache": false
+		},
+		"test": {
+			"dependsOn": ["build", "^test"],
+			"outputs": []
+		},
+		"cov": {
+			"dependsOn": []
+		},
+		"lint": {
+			"dependsOn": [],
+			"outputs": []
+		},
+		"lint:fix": {
+			"dependsOn": ["lint"],
+			"outputs": []
+		},
+		"format": {
+			"dependsOn": [],
+			"outputs": []
+		},
+		"release": {
+			"dependsOn": ["build"],
+			"outputs": []
+		},
+		"release:no-build": {
+			"dependsOn": [],
+			"outputs": []
+		},
+		"release:canary": {
+			"dependsOn": ["build"],
+			"outputs": []
+		},
+		"prepare": {
+			"dependsOn": [],
+			"outputs": []
+		},
+		"bump": {
+			"dependsOn": [],
+			"outputs": []
+		}
+	}
 }

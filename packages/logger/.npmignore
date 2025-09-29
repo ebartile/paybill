@@ -4,15 +4,17 @@ test/
 
 # Ignore configs
 tsconfig.json
-build.config.ts
+tsup.config.ts
 vitest.config.ts
 
 # Logs & misc
+logs/
 *.log
 .DS_Store
 coverage/
 .turbo/
 .gitignore
+*.tsbuildinfo
 
 # Ignore build caches
 node_modules/

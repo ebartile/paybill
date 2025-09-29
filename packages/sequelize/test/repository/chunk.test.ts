@@ -1,93 +1,96 @@
-import { Collection, mockDatabase, Database } from '../../src';
+import { Collection, mockDatabase, Database } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+describe("repository chunk", () => {
+	let db: Database;
+	let Post: Collection;
+	let User: Collection;
 
-describe('repository chunk', () => {
-  let db: Database;
-  let Post: Collection;
-  let User: Collection;
+	afterEach(async () => {
+		await db.close();
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	beforeEach(async () => {
+		db = await mockDatabase();
 
-  beforeEach(async () => {
-    db = await mockDatabase();
+		await db.clean({ drop: true });
 
-    await db.clean({ drop: true });
+		User = db.collection({
+			name: "users",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+				{
+					type: "hasMany",
+					name: "posts",
+				},
+			],
+		});
 
-    User = db.collection({
-      name: 'users',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-        {
-          type: 'hasMany',
-          name: 'posts',
-        },
-      ],
-    });
+		Post = db.collection({
+			name: "posts",
+			fields: [
+				{
+					type: "string",
+					name: "title",
+				},
+				{
+					type: "belongsTo",
+					name: "user",
+				},
+			],
+		});
 
-    Post = db.collection({
-      name: 'posts',
-      fields: [
-        {
-          type: 'string',
-          name: 'title',
-        },
-        {
-          type: 'belongsTo',
-          name: 'user',
-        },
-      ],
-    });
+		await db.sync();
+	});
 
-    await db.sync();
-  });
+	it("should find items with chunk", async () => {
+		const values = Array.from({ length: 99 }, (_, i) => ({
+			name: `user-${i}`,
+		}));
 
-  it('should find items with chunk', async () => {
-    const values = Array.from({ length: 99 }, (_, i) => ({ name: `user-${i}` }));
+		const repository = db.getRepository("users");
 
-    const repository = db.getRepository('users');
+		await repository.create({
+			values,
+		});
 
-    await repository.create({
-      values,
-    });
+		const chunkCallback = vi.fn();
 
-    const chunkCallback = vi.fn();
+		await repository.chunk({
+			chunkSize: 10,
+			callback: chunkCallback,
+		});
 
-    await repository.chunk({
-      chunkSize: 10,
-      callback: chunkCallback,
-    });
+		expect(chunkCallback).toHaveBeenCalledTimes(10);
+	});
 
-    expect(chunkCallback).toHaveBeenCalledTimes(10);
-  });
+	it("should chunk with limit", async () => {
+		const values = Array.from({ length: 99 }, (_, i) => ({
+			name: `user-${i}`,
+		}));
 
-  it('should chunk with limit', async () => {
-    const values = Array.from({ length: 99 }, (_, i) => ({ name: `user-${i}` }));
+		const repository = db.getRepository("users");
 
-    const repository = db.getRepository('users');
+		await repository.create({
+			values,
+		});
 
-    await repository.create({
-      values,
-    });
+		let totalCount = 0;
+		const chunkCallback = vi.fn();
 
-    let totalCount = 0;
-    const chunkCallback = vi.fn();
+		await repository.chunk({
+			chunkSize: 10,
+			limit: 11,
+			callback: async (rows) => {
+				chunkCallback();
+				totalCount += rows.length;
+			},
+		});
 
-    await repository.chunk({
-      chunkSize: 10,
-      limit: 11,
-      callback: async (rows) => {
-        chunkCallback();
-        totalCount += rows.length;
-      },
-    });
-
-    expect(chunkCallback).toHaveBeenCalledTimes(2);
-    expect(totalCount).toBe(11);
-  });
+		expect(chunkCallback).toHaveBeenCalledTimes(2);
+		expect(totalCount).toBe(11);
+	});
 });

@@ -1,37 +1,37 @@
-import { Sequelize, QueryTypes, Op } from 'sequelize';
-import { type FindOptions } from './repository';
-import { Model } from './model';
-import _ from 'lodash';
-import { Collection } from './collection';
+import { Sequelize, QueryTypes, Op } from "sequelize";
+import { type FindOptions } from "./repository";
+import { Model } from "./model";
+import _ from "lodash";
+import { Collection } from "./collection";
 
 interface IndexInfo {
-  name: string;
-  columns: string[];
-  isPrimary: boolean;
-  isUnique: boolean;
+	name: string;
+	columns: string[];
+	isPrimary: boolean;
+	isUnique: boolean;
 }
 
 export class SmartCursorBuilder {
-  private sequelize: Sequelize;
-  private tableName: string;
-  private collection: Collection;
+	private sequelize: Sequelize;
+	private tableName: string;
+	private collection: Collection;
 
-  constructor(sequelize: Sequelize, tableName: string, collection: Collection) {
-    this.sequelize = sequelize;
-    this.tableName = tableName;
-    this.collection = collection;
-  }
+	constructor(sequelize: Sequelize, tableName: string, collection: Collection) {
+		this.sequelize = sequelize;
+		this.tableName = tableName;
+		this.collection = collection;
+	}
 
-  /**
-   * Automatically select the optimal cursor strategy based on the table structure
-   */
-  private async getBestCursorStrategy(): Promise<CursorStrategy> {
-    let indexInfoSql = '';
+	/**
+	 * Automatically select the optimal cursor strategy based on the table structure
+	 */
+	private async getBestCursorStrategy(): Promise<CursorStrategy> {
+		let indexInfoSql = "";
 
-    const dialect = this.sequelize.getDialect();
+		const dialect = this.sequelize.getDialect();
 
-    if (dialect === 'postgres') {
-      indexInfoSql = `
+		if (dialect === "postgres") {
+			indexInfoSql = `
       SELECT 
         t.relname AS table_name,
         i.relname AS index_name,
@@ -65,8 +65,8 @@ export class SmartCursorBuilder {
         i.relname, 
         array_position(ix.indkey, a.attnum)
     `;
-    } else if (dialect === 'mariadb' || dialect === 'mysql') {
-      indexInfoSql = `
+		} else if (dialect === "mariadb" || dialect === "mysql") {
+			indexInfoSql = `
       SELECT 
         i.TABLE_NAME, 
         i.INDEX_NAME, 
@@ -86,229 +86,252 @@ export class SmartCursorBuilder {
         i.INDEX_NAME, 
         i.SEQ_IN_INDEX;
     `;
-    }
-    const indexRows = (await this.sequelize.query(indexInfoSql, {
-      type: QueryTypes.SELECT,
-      replacements: [this.tableName],
-      raw: true,
-    })) as any[];
+		}
+		const indexRows = (await this.sequelize.query(indexInfoSql, {
+			type: QueryTypes.SELECT,
+			replacements: [this.tableName],
+			raw: true,
+		})) as any[];
 
-    const indexes: Map<string, IndexInfo> = new Map();
-    const indexDirections: Map<string, Map<string, string>> = new Map();
-    if (!indexRows || indexRows.length === 0) {
-      if (Array.isArray(this.collection.filterTargetKey)) {
-        return new CompositeKeyCursorStrategy(this.collection.filterTargetKey);
-      }
-      return new SingleColumnCursorStrategy(this.collection.filterTargetKey);
-    }
-    for (const row of indexRows) {
-      const indexName = dialect === 'postgres' ? row.index_name : row.INDEX_NAME;
-      const columnName = dialect === 'postgres' ? row.column_name : row.COLUMN_NAME;
-      const indexType = dialect === 'postgres' ? row.index_type : row.INDEX_TYPE;
-      if (dialect === 'postgres' && row.direction) {
-        if (!indexDirections.has(indexName)) {
-          indexDirections.set(indexName, new Map());
-        }
-        indexDirections.get(indexName).set(columnName, row.direction);
-      }
+		const indexes: Map<string, IndexInfo> = new Map();
+		const indexDirections: Map<string, Map<string, string>> = new Map();
+		if (!indexRows || indexRows.length === 0) {
+			if (Array.isArray(this.collection.filterTargetKey)) {
+				return new CompositeKeyCursorStrategy(this.collection.filterTargetKey);
+			}
+			return new SingleColumnCursorStrategy(this.collection.filterTargetKey);
+		}
+		for (const row of indexRows) {
+			const indexName =
+				dialect === "postgres" ? row.index_name : row.INDEX_NAME;
+			const columnName =
+				dialect === "postgres" ? row.column_name : row.COLUMN_NAME;
+			const indexType =
+				dialect === "postgres" ? row.index_type : row.INDEX_TYPE;
+			if (dialect === "postgres" && row.direction) {
+				if (!indexDirections.has(indexName)) {
+					indexDirections.set(indexName, new Map());
+				}
+				indexDirections.get(indexName).set(columnName, row.direction);
+			}
 
-      if (!indexes.has(indexName)) {
-        indexes.set(indexName, {
-          name: indexName,
-          columns: [],
-          isPrimary: dialect === 'postgres' ? indexType === 1 : indexName === 'PRIMARY',
-          isUnique: indexType < 3,
-        });
-      }
-      const seqInIndex = dialect === 'postgres' ? row.seq_in_index : row.SEQ_IN_INDEX;
-      const index = indexes.get(indexName);
-      index.columns[seqInIndex - 1] = columnName;
-    }
+			if (!indexes.has(indexName)) {
+				indexes.set(indexName, {
+					name: indexName,
+					columns: [],
+					isPrimary:
+						dialect === "postgres" ? indexType === 1 : indexName === "PRIMARY",
+					isUnique: indexType < 3,
+				});
+			}
+			const seqInIndex =
+				dialect === "postgres" ? row.seq_in_index : row.SEQ_IN_INDEX;
+			const index = indexes.get(indexName);
+			index.columns[seqInIndex - 1] = columnName;
+		}
 
-    for (const index of indexes.values()) {
-      if (index.isPrimary) {
-        if (index.columns.length === 1) {
-          return new SingleColumnCursorStrategy(index.columns[0]);
-        } else {
-          if (dialect === 'postgres' && indexDirections.has(index.name)) {
-            const directions = index.columns.map((col) => indexDirections.get(index.name).get(col) || 'ASC');
-            return new CompositeKeyCursorStrategy(index.columns, directions);
-          } else {
-            return new CompositeKeyCursorStrategy(index.columns);
-          }
-        }
-      }
-    }
+		for (const index of indexes.values()) {
+			if (index.isPrimary) {
+				if (index.columns.length === 1) {
+					return new SingleColumnCursorStrategy(index.columns[0]);
+				} else {
+					if (dialect === "postgres" && indexDirections.has(index.name)) {
+						const directions = index.columns.map(
+							(col) => indexDirections.get(index.name).get(col) || "ASC",
+						);
+						return new CompositeKeyCursorStrategy(index.columns, directions);
+					} else {
+						return new CompositeKeyCursorStrategy(index.columns);
+					}
+				}
+			}
+		}
 
-    // 2. Find unique index (single column preferred)
-    let singleColumnUniqueIndex = null;
-    let multiColumnUniqueIndex = null;
+		// 2. Find unique index (single column preferred)
+		let singleColumnUniqueIndex = null;
+		let multiColumnUniqueIndex = null;
 
-    for (const index of indexes.values()) {
-      if (index.isUnique && !index.isPrimary) {
-        if (index.columns.length === 1 && !singleColumnUniqueIndex) {
-          singleColumnUniqueIndex = index;
-        } else if (index.columns.length > 1 && !multiColumnUniqueIndex) {
-          multiColumnUniqueIndex = index;
-        }
-      }
-    }
+		for (const index of indexes.values()) {
+			if (index.isUnique && !index.isPrimary) {
+				if (index.columns.length === 1 && !singleColumnUniqueIndex) {
+					singleColumnUniqueIndex = index;
+				} else if (index.columns.length > 1 && !multiColumnUniqueIndex) {
+					multiColumnUniqueIndex = index;
+				}
+			}
+		}
 
-    if (singleColumnUniqueIndex) {
-      return new SingleColumnCursorStrategy(singleColumnUniqueIndex.columns[0]);
-    }
+		if (singleColumnUniqueIndex) {
+			return new SingleColumnCursorStrategy(singleColumnUniqueIndex.columns[0]);
+		}
 
-    if (multiColumnUniqueIndex) {
-      return new CompositeKeyCursorStrategy(multiColumnUniqueIndex.columns);
-    }
+		if (multiColumnUniqueIndex) {
+			return new CompositeKeyCursorStrategy(multiColumnUniqueIndex.columns);
+		}
 
-    // 3. Normal index, try to find the leftmost column of any index
-    let anyIndex = null;
-    for (const index of indexes.values()) {
-      if (index.columns.length > 0 && !index.isPrimary && !index.isUnique) {
-        anyIndex = index;
-        break;
-      }
-    }
+		// 3. Normal index, try to find the leftmost column of any index
+		let anyIndex = null;
+		for (const index of indexes.values()) {
+			if (index.columns.length > 0 && !index.isPrimary && !index.isUnique) {
+				anyIndex = index;
+				break;
+			}
+		}
 
-    if (anyIndex) {
-      if (anyIndex.columns.length === 1) {
-        return new SingleColumnCursorStrategy(anyIndex.columns[0]);
-      } else {
-        return new CompositeKeyCursorStrategy(anyIndex.columns);
-      }
-    }
-  }
+		if (anyIndex) {
+			if (anyIndex.columns.length === 1) {
+				return new SingleColumnCursorStrategy(anyIndex.columns[0]);
+			} else {
+				return new CompositeKeyCursorStrategy(anyIndex.columns);
+			}
+		}
 
-  /**
-   * Cursor-based pagination query function.
-   * Ideal for large datasets (e.g., millions of rows)
-   * Note:
-   *  1. does not support jumping to arbitrary pages (e.g., "Page 5")
-   *  2. Requires a stable, indexed sort field (e.g. ID, createdAt)
-   *  3. If custom orderBy is used, it must match the cursor field(s) and direction, otherwise results may be incorrect or unstable.
-   * @param options
-   */
-  async chunk(
-    options: FindOptions & {
-      chunkSize: number;
-      callback: (rows: Model[], options: FindOptions) => Promise<void>;
-      find: (options: FindOptions) => Promise<any[]>;
-      beforeFind?: (options: FindOptions) => Promise<void>;
-      afterFind?: (rows: Model[], options: FindOptions) => Promise<void>;
-    },
-  ) {
-    const cursorStrategy = await this.getBestCursorStrategy();
-    let cursorRecord = null;
-    let hasMoreData = true;
-    let isFirst = true;
-    options.order = cursorStrategy.buildSort();
-    options['parseSort'] = false;
-    while (hasMoreData) {
-      if (!isFirst) {
-        options.where = cursorStrategy.buildWhere(options.where, cursorRecord);
-      }
-      if (isFirst) {
-        isFirst = false;
-      }
-      options.limit = options.chunkSize || 1000;
-      if (options.beforeFind) {
-        await options.beforeFind(options);
-      }
-      const records = await options.find(_.omit(options, 'callback', 'beforeFind', 'afterFind', 'chunkSize', 'find'));
-      if (options.afterFind) {
-        await options.afterFind(records, options);
-      }
-      if (records.length === 0) {
-        hasMoreData = false;
-        continue;
-      }
-      await options.callback(records, options);
-      cursorRecord = records[records.length - 1];
-    }
-  }
+		return null;
+	}
+
+	/**
+	 * Cursor-based pagination query function.
+	 * Ideal for large datasets (e.g., millions of rows)
+	 * Note:
+	 *  1. does not support jumping to arbitrary pages (e.g., "Page 5")
+	 *  2. Requires a stable, indexed sort field (e.g. ID, createdAt)
+	 *  3. If custom orderBy is used, it must match the cursor field(s) and direction, otherwise results may be incorrect or unstable.
+	 * @param options
+	 */
+	async chunk(
+		options: FindOptions & {
+			chunkSize: number;
+			callback: (rows: Model[], options: FindOptions) => Promise<void>;
+			find: (options: FindOptions) => Promise<any[]>;
+			beforeFind?: (options: FindOptions) => Promise<void>;
+			afterFind?: (rows: Model[], options: FindOptions) => Promise<void>;
+		},
+	) {
+		const cursorStrategy = await this.getBestCursorStrategy();
+		let cursorRecord = null;
+		let hasMoreData = true;
+		let isFirst = true;
+		options.order = cursorStrategy.buildSort();
+		options["parseSort"] = false;
+		while (hasMoreData) {
+			if (!isFirst) {
+				options.where = cursorStrategy.buildWhere(options.where, cursorRecord);
+			}
+			if (isFirst) {
+				isFirst = false;
+			}
+			options.limit = options.chunkSize || 1000;
+			if (options.beforeFind) {
+				await options.beforeFind(options);
+			}
+			const records = await options.find(
+				_.omit(
+					options,
+					"callback",
+					"beforeFind",
+					"afterFind",
+					"chunkSize",
+					"find",
+				),
+			);
+			if (options.afterFind) {
+				await options.afterFind(records, options);
+			}
+			if (records.length === 0) {
+				hasMoreData = false;
+				continue;
+			}
+			await options.callback(records, options);
+			cursorRecord = records[records.length - 1];
+		}
+	}
 }
 
 /**
  * Cursor Strategy Interface - Common interface for defining different cursor strategies
  */
 interface CursorStrategy {
-  buildWhere(baseWhere: any, record?: Model): any;
-  buildSort(): any;
+	buildWhere(baseWhere: any, record?: Model): any;
+	buildSort(): any;
 }
 
 class SingleColumnCursorStrategy implements CursorStrategy {
-  public columnName: string;
+	public columnName: string;
 
-  constructor(columnName: string) {
-    this.columnName = columnName;
-  }
+	constructor(columnName: string) {
+		this.columnName = columnName;
+	}
 
-  buildSort() {
-    return [[this.columnName, 'ASC']];
-  }
+	buildSort() {
+		return [[this.columnName, "ASC"]];
+	}
 
-  buildWhere(baseWhere: any, record?: Model): any {
-    if (!record) {
-      return baseWhere;
-    }
-    return { ...baseWhere, [this.columnName]: { [Op.gt]: record[this.columnName] } };
-  }
+	buildWhere(baseWhere: any, record?: Model): any {
+		if (!record) {
+			return baseWhere;
+		}
+		return {
+			...baseWhere,
+			[this.columnName]: { [Op.gt]: record[this.columnName] },
+		};
+	}
 }
 
 /**
  * Composite key cursor strategy - suitable for tables with composite indexes
  */
 class CompositeKeyCursorStrategy implements CursorStrategy {
-  private columns: string[];
-  private directions: string[];
+	private columns: string[];
+	private directions: string[];
 
-  constructor(columns: string[], directions?: string[]) {
-    this.columns = columns;
-    this.directions = directions || Array(columns.length).fill('ASC');
-  }
+	constructor(columns: string[], directions?: string[]) {
+		this.columns = columns;
+		this.directions = directions || Array(columns.length).fill("ASC");
+	}
 
-  buildSort() {
-    const orderBy = [];
-    for (let i = 0; i < this.columns.length; i++) {
-      orderBy.push([this.columns[i], this.directions[i]]);
-    }
-    return orderBy;
-  }
+	buildSort() {
+		const orderBy = [];
+		for (let i = 0; i < this.columns.length; i++) {
+			orderBy.push([this.columns[i], this.directions[i]]);
+		}
+		return orderBy;
+	}
 
-  buildWhere(baseWhere: any, record?: any): any {
-    if (!record) {
-      return baseWhere;
-    }
-    const whereConditions = [];
+	buildWhere(baseWhere: any, record?: any): any {
+		if (!record) {
+			return baseWhere;
+		}
+		const whereConditions = [];
 
-    for (let i = 0; i < this.columns.length; i++) {
-      const column = this.columns[i];
+		for (let i = 0; i < this.columns.length; i++) {
+			const column = this.columns[i];
 
-      if (i > 0) {
-        const equalConditions = {};
-        for (let j = 0; j < i; j++) {
-          equalConditions[this.columns[j]] = record[this.columns[j]];
-        }
+			if (i > 0) {
+				const equalConditions = {};
+				for (let j = 0; j < i; j++) {
+					equalConditions[this.columns[j]] = record[this.columns[j]];
+				}
 
-        whereConditions.push({
-          ...equalConditions,
-          [column]: {
-            [Op.gt]: record[column],
-          },
-        });
-      } else {
-        whereConditions.push({
-          [column]: {
-            [Op.gt]: record[column],
-          },
-        });
-      }
-    }
-    const cursorCondition = {
-      [Op.or]: whereConditions,
-    };
+				whereConditions.push({
+					...equalConditions,
+					[column]: {
+						[Op.gt]: record[column],
+					},
+				});
+			} else {
+				whereConditions.push({
+					[column]: {
+						[Op.gt]: record[column],
+					},
+				});
+			}
+		}
+		const cursorCondition = {
+			[Op.or]: whereConditions,
+		};
 
-    return baseWhere ? { [Op.and]: [baseWhere, cursorCondition] } : cursorCondition;
-  }
+		return baseWhere
+			? { [Op.and]: [baseWhere, cursorCondition] }
+			: cursorCondition;
+	}
 }

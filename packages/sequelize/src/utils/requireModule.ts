@@ -1,5 +1,5 @@
-import path from "node:path";
-import { pathToFileURL } from "node:url";
+import path from "path";
+import { pathToFileURL } from "url";
 
 export function requireModule(m: any) {
 	if (typeof m === "string") {
@@ -16,18 +16,14 @@ export function requireModule(m: any) {
 export default requireModule;
 
 export async function importModule(m: string) {
-	// Fallback to requireModule in non-test environments
-	if (process.env.NODE_ENV === "test") {
+	if (!process.env.VITEST) {
 		return requireModule(m);
 	}
 
 	if (path.isAbsolute(m)) {
-		try {
-			return (await import(m)).default;
-		} catch {
-			return (await import(pathToFileURL(m).href)).default;
-		}
+		m = pathToFileURL(m).href;
 	}
 
-	return (await import(m)).default;
+	const r = (await import(m)).default;
+	return r.__esModule ? r.default : r;
 }

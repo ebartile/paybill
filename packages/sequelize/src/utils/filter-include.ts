@@ -1,4 +1,4 @@
-import { snakeCase } from '../utils';
+import { snakeCase } from "../utils";
 
 /**
  * Traverse the `where` clause and collect association alias paths referenced by "$...$" keys.
@@ -7,39 +7,45 @@ import { snakeCase } from '../utils';
  * - Returned paths are unique (Set-based collection).
  */
 const collectAssociationPathsFromWhere = (where: any): string[] => {
-  const aliasPaths = new Set<string>();
+	const aliasPaths = new Set<string>();
 
-  const traverse = (value: any) => {
-    if (value == null) return;
+	const traverse = (value: any) => {
+		if (value == null) return;
 
-    if (Array.isArray(value)) {
-      for (const item of value) traverse(item);
-      return;
-    }
+		if (Array.isArray(value)) {
+			for (const item of value) traverse(item);
+			return;
+		}
 
-    if (typeof value === 'object') {
-      for (const [rawKey, child] of Object.entries(value as Record<string, unknown>)) {
-        // Keys in the format "$a.b.c$" indicate a path across associations, ending with a field name.
-        if (typeof rawKey === 'string' && rawKey.startsWith('$') && rawKey.endsWith('$')) {
-          const inner = rawKey.slice(1, -1);
-          const segments = inner.split('.');
-          if (segments.length > 1) {
-            // Keep only the association path (drop the last segment which represents a concrete field)
-            aliasPaths.add(segments.slice(0, -1).join('.'));
-          }
-        }
-        traverse(child);
-      }
+		if (typeof value === "object") {
+			for (const [rawKey, child] of Object.entries(
+				value as Record<string, unknown>,
+			)) {
+				// Keys in the format "$a.b.c$" indicate a path across associations, ending with a field name.
+				if (
+					typeof rawKey === "string" &&
+					rawKey.startsWith("$") &&
+					rawKey.endsWith("$")
+				) {
+					const inner = rawKey.slice(1, -1);
+					const segments = inner.split(".");
+					if (segments.length > 1) {
+						// Keep only the association path (drop the last segment which represents a concrete field)
+						aliasPaths.add(segments.slice(0, -1).join("."));
+					}
+				}
+				traverse(child);
+			}
 
-      // Also traverse symbol-keyed properties to be exhaustive
-      for (const sym of Object.getOwnPropertySymbols(value)) {
-        traverse((value as any)[sym]);
-      }
-    }
-  };
+			// Also traverse symbol-keyed properties to be exhaustive
+			for (const sym of Object.getOwnPropertySymbols(value)) {
+				traverse((value as any)[sym]);
+			}
+		}
+	};
 
-  traverse(where);
-  return Array.from(aliasPaths);
+	traverse(where);
+	return Array.from(aliasPaths);
 };
 
 /**
@@ -53,51 +59,59 @@ const collectAssociationPathsFromWhere = (where: any): string[] => {
  *   - For an include with association "profile", it keeps the node as-is (no child path remainder).
  */
 const pruneIncludeTreeByPaths = (
-  includes = [],
-  requiredPathsRaw: string[],
-  options: { underscored: boolean },
+	includes = [],
+	requiredPathsRaw: string[],
+	options: { underscored: boolean },
 ): any[] => {
-  const normalizedPaths = options.underscored
-    ? requiredPathsRaw.map((p) =>
-        p
-          .split('.')
-          .map((s) => snakeCase(s))
-          .join('.'),
-      )
-    : requiredPathsRaw;
-  if (!includes?.length || !normalizedPaths?.length) return [];
+	const normalizedPaths = options.underscored
+		? requiredPathsRaw.map((p) =>
+				p
+					.split(".")
+					.map((s) => snakeCase(s))
+					.join("."),
+			)
+		: requiredPathsRaw;
+	if (!includes?.length || !normalizedPaths?.length) return [];
 
-  const pruned = [];
+	const pruned = [];
 
-  for (const inc of includes) {
-    const association = inc?.association;
-    if (!association) continue;
+	for (const inc of includes) {
+		const association = inc?.association;
+		if (!association) continue;
 
-    const assocKey = options.underscored ? snakeCase(String(association)) : String(association);
+		const assocKey = options.underscored
+			? snakeCase(String(association))
+			: String(association);
 
-    // Keep current node only if any path equals the alias or starts with "alias."
-    const matched = normalizedPaths.filter((p) => p === assocKey || p.startsWith(assocKey + '.'));
-    if (!matched.length) continue;
+		// Keep current node only if any path equals the alias or starts with "alias."
+		const matched = normalizedPaths.filter(
+			(p) => p === assocKey || p.startsWith(assocKey + "."),
+		);
+		if (!matched.length) continue;
 
-    // Compute child path remainders (the part after the current alias)
-    const childRemainders = matched
-      .map((p) => (p === assocKey ? null : p.slice(assocKey.length + 1)))
-      .filter(Boolean) as string[];
+		// Compute child path remainders (the part after the current alias)
+		const childRemainders = matched
+			.map((p) => (p === assocKey ? null : p.slice(assocKey.length + 1)))
+			.filter(Boolean) as string[];
 
-    const children = pruneIncludeTreeByPaths(inc.include ?? [], childRemainders, options);
+		const children = pruneIncludeTreeByPaths(
+			inc.include ?? [],
+			childRemainders,
+			options,
+		);
 
-    const copy = { ...inc };
-    if (children.length) {
-      copy.include = children;
-    } else if ('include' in copy) {
-      // Remove empty include to keep payload minimal and consistent
-      delete copy.include;
-    }
+		const copy = { ...inc };
+		if (children.length) {
+			copy.include = children;
+		} else if ("include" in copy) {
+			// Remove empty include to keep payload minimal and consistent
+			delete copy.include;
+		}
 
-    pruned.push(copy);
-  }
+		pruned.push(copy);
+	}
 
-  return pruned;
+	return pruned;
 };
 
 /**
@@ -144,40 +158,47 @@ const pruneIncludeTreeByPaths = (
  *   ]
  */
 export const mergeIncludes = (includes = []): any[] => {
-  const byAssociation = new Map<string, any>();
+	const byAssociation = new Map<string, any>();
 
-  const mergeAll = (list = []) => {
-    for (const inc of list) {
-      const association = inc?.association;
-      if (!association) continue;
+	const mergeAll = (list = []) => {
+		for (const inc of list) {
+			const association = inc?.association;
+			if (!association) continue;
 
-      const key = snakeCase(String(association));
-      if (!byAssociation.has(key)) {
-        byAssociation.set(key, { ...inc, include: undefined });
-      }
+			const key = snakeCase(String(association));
+			if (!byAssociation.has(key)) {
+				byAssociation.set(key, { ...inc, include: undefined });
+			}
 
-      const target = byAssociation.get(key)!;
+			const target = byAssociation.get(key)!;
 
-      // Required: union (any true => true)
-      if (inc.required) target.required = true;
+			// Required: union (any true => true)
+			if (inc.required) target.required = true;
 
-      // Merge children recursively
-      const mergedChildren = mergeIncludes([...(target.include ?? []), ...(inc.include ?? [])]);
+			// Merge children recursively
+			const mergedChildren = mergeIncludes([
+				...(target.include ?? []),
+				...(inc.include ?? []),
+			]);
 
-      if (mergedChildren.length) {
-        target.include = mergedChildren;
-      } else if ('include' in target) {
-        delete target.include;
-      }
-    }
-  };
+			if (mergedChildren.length) {
+				target.include = mergedChildren;
+			} else if ("include" in target) {
+				delete target.include;
+			}
+		}
+	};
 
-  mergeAll(includes);
-  return Array.from(byAssociation.values());
+	mergeAll(includes);
+	return Array.from(byAssociation.values());
 };
 
-export const filterIncludes = (where, includes, options: { underscored: boolean }) => {
-  const path = collectAssociationPathsFromWhere(where);
-  const result = pruneIncludeTreeByPaths(includes, path, options);
-  return result;
+export const filterIncludes = (
+	where,
+	includes,
+	options: { underscored: boolean },
+) => {
+	const path = collectAssociationPathsFromWhere(where);
+	const result = pruneIncludeTreeByPaths(includes, path, options);
+	return result;
 };

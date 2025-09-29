@@ -1,94 +1,114 @@
-import { ArrayFieldRepository, Database, mockDatabase } from '../../src';
+import {
+	ArrayFieldRepository,
+	Database,
+	mockDatabase,
+} from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('Array field repository', () => {
-  let db: Database;
+describe("Array field repository", () => {
+	let db: Database;
 
-  let TestCollection;
+	let TestCollection;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
-    await db.clean({ drop: true });
-    TestCollection = db.collection({
-      name: 'test',
-      fields: [
-        {
-          type: 'set',
-          name: 'set-field',
-        },
-      ],
-    });
+	beforeEach(async () => {
+		db = await mockDatabase();
+		await db.clean({ drop: true });
+		TestCollection = db.collection({
+			name: "test",
+			fields: [
+				{
+					type: "set",
+					name: "set-field",
+				},
+			],
+		});
 
-    await db.sync();
-  });
+		await db.sync();
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should add item into fields', async () => {
-    const a1 = await TestCollection.repository.create({});
+	it("should add item into fields", async () => {
+		const a1 = await TestCollection.repository.create({});
 
-    const fieldRepository = new ArrayFieldRepository(TestCollection, 'set-field', a1.get('id'));
-    await fieldRepository.add({
-      values: 'a',
-    });
+		const fieldRepository = new ArrayFieldRepository(
+			TestCollection,
+			"set-field",
+			a1.get("id"),
+		);
+		await fieldRepository.add({
+			values: "a",
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a']);
-  });
+		expect(await fieldRepository.get()).toEqual(["a"]);
+	});
 
-  it('should remove item', async () => {
-    const a1 = await TestCollection.repository.create({});
+	it("should remove item", async () => {
+		const a1 = await TestCollection.repository.create({});
 
-    const fieldRepository = new ArrayFieldRepository(TestCollection, 'set-field', a1.get('id'));
-    await fieldRepository.add({
-      values: ['a', 'b', 'c'],
-    });
+		const fieldRepository = new ArrayFieldRepository(
+			TestCollection,
+			"set-field",
+			a1.get("id"),
+		);
+		await fieldRepository.add({
+			values: ["a", "b", "c"],
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a', 'b', 'c']);
-    await fieldRepository.remove({
-      values: ['c'],
-    });
+		expect(await fieldRepository.get()).toEqual(["a", "b", "c"]);
+		await fieldRepository.remove({
+			values: ["c"],
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a', 'b']);
-  });
+		expect(await fieldRepository.get()).toEqual(["a", "b"]);
+	});
 
-  it('should set items', async () => {
-    const a1 = await TestCollection.repository.create({});
+	it("should set items", async () => {
+		const a1 = await TestCollection.repository.create({});
 
-    const fieldRepository = new ArrayFieldRepository(TestCollection, 'set-field', a1.get('id'));
-    await fieldRepository.add({
-      values: ['a', 'b', 'c'],
-    });
+		const fieldRepository = new ArrayFieldRepository(
+			TestCollection,
+			"set-field",
+			a1.get("id"),
+		);
+		await fieldRepository.add({
+			values: ["a", "b", "c"],
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a', 'b', 'c']);
-    await fieldRepository.set({
-      values: ['d', 'e'],
-    });
+		expect(await fieldRepository.get()).toEqual(["a", "b", "c"]);
+		await fieldRepository.set({
+			values: ["d", "e"],
+		});
 
-    expect(await fieldRepository.get()).toEqual(['d', 'e']);
-  });
+		expect(await fieldRepository.get()).toEqual(["d", "e"]);
+	});
 
-  it('should toggle item', async () => {
-    const a1 = await TestCollection.repository.create({});
+	it("should toggle item", async () => {
+		const a1 = await TestCollection.repository.create({});
 
-    const fieldRepository = new ArrayFieldRepository(TestCollection, 'set-field', a1.get('id'));
-    await fieldRepository.add({
-      values: ['a', 'b', 'c'],
-    });
+		const fieldRepository = new ArrayFieldRepository(
+			TestCollection,
+			"set-field",
+			a1.get("id"),
+		);
+		await fieldRepository.add({
+			values: ["a", "b", "c"],
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a', 'b', 'c']);
+		expect(await fieldRepository.get()).toEqual(["a", "b", "c"]);
 
-    await fieldRepository.toggle({
-      value: 'c',
-    });
+		await fieldRepository.toggle({
+			value: "c",
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a', 'b']);
+		expect(await fieldRepository.get()).toEqual(["a", "b"]);
 
-    await fieldRepository.toggle({
-      value: 'c',
-    });
+		await fieldRepository.toggle({
+			value: "c",
+		});
 
-    expect(await fieldRepository.get()).toEqual(['a', 'b', 'c']);
-  });
+		expect(await fieldRepository.get()).toEqual(["a", "b", "c"]);
+	});
 });

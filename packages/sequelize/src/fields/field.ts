@@ -1,177 +1,187 @@
-import _ from 'lodash';
-import { type DataType, type ModelAttributeColumnOptions, type ModelIndexesOptions, type SyncOptions, type Transactionable } from 'sequelize';
-import { Collection } from '../collection';
-import { Database } from '../database';
-import { type ModelEventTypes } from '../types';
-import { snakeCase } from '../utils';
+import _ from "lodash";
+import {
+	type DataType,
+	type ModelAttributeColumnOptions,
+	type ModelIndexesOptions,
+	type SyncOptions,
+	type Transactionable,
+} from "sequelize";
+import { Collection } from "../collection";
+import { Database } from "../database";
+import { type ModelEventTypes } from "../types";
+import { snakeCase } from "../utils";
 
 export interface FieldContext {
-  database: Database;
-  collection: Collection;
+	database: Database;
+	collection: Collection;
 }
 
 export interface BaseFieldOptions {
-  name?: string;
-  hidden?: boolean;
-  translation?: boolean;
+	name?: string;
+	hidden?: boolean;
+	translation?: boolean;
 
-  [key: string]: any;
+	[key: string]: any;
 }
 
-export interface BaseColumnFieldOptions extends BaseFieldOptions, Omit<ModelAttributeColumnOptions, 'type'> {
-  dataType?: DataType;
-  index?: boolean | ModelIndexesOptions;
+export interface BaseColumnFieldOptions
+	extends BaseFieldOptions,
+		Omit<ModelAttributeColumnOptions, "type"> {
+	dataType?: DataType;
+	index?: boolean | ModelIndexesOptions;
 }
 
 export abstract class Field {
-  options: any;
-  context: FieldContext;
-  database: Database;
-  collection: Collection;
+	options: any;
+	context: FieldContext;
+	database: Database;
+	collection: Collection;
 
-  [key: string]: any;
+	[key: string]: any;
 
-  constructor(options?: any, context?: FieldContext) {
-    this.context = context as any;
-    this.database = this.context.database;
-    this.collection = this.context.collection;
-    this.options = options || {};
-    this.init();
-  }
+	constructor(options?: any, context?: FieldContext) {
+		this.context = context as any;
+		this.database = this.context.database;
+		this.collection = this.context.collection;
+		this.options = options || {};
+		this.init();
+	}
 
-  get name() {
-    return this.options.name;
-  }
+	get name() {
+		return this.options.name;
+	}
 
-  get type() {
-    return this.options.type;
-  }
+	get type() {
+		return this.options.type;
+	}
 
-  abstract get dataType(): any;
+	abstract get dataType(): any;
 
-  isRelationField() {
-    return false;
-  }
+	isRelationField() {
+		return false;
+	}
 
-  async sync(syncOptions: SyncOptions) {
-    await this.collection.sync({
-      ...syncOptions,
-      force: false,
-      alter: {
-        drop: false,
-      },
-    });
-  }
+	async sync(syncOptions: SyncOptions) {
+		await this.collection.sync({
+			...syncOptions,
+			force: false,
+			alter: {
+				drop: false,
+			},
+		});
+	}
 
-  init() {
-    // code
-  }
+	init() {
+		// code
+	}
 
-  on(eventName: ModelEventTypes, listener: (...args: any[]) => void) {
-    this.database.on(`${this.collection.name}.${eventName}`, listener);
-    return this;
-  }
+	on(eventName: ModelEventTypes, listener: (...args: any[]) => void) {
+		this.database.on(`${this.collection.name}.${eventName}`, listener);
+		return this;
+	}
 
-  off(eventName: string, listener: (...args: any[]) => void) {
-    this.database.off(`${this.collection.name}.${eventName}`, listener);
-    return this;
-  }
+	off(eventName: string, listener: (...args: any[]) => void) {
+		this.database.off(`${this.collection.name}.${eventName}`, listener);
+		return this;
+	}
 
-  get(name: string) {
-    return this.options[name];
-  }
+	get(name: string) {
+		return this.options[name];
+	}
 
-  remove() {
-    this.collection.removeIndex([this.name]);
-    return this.collection.removeField(this.name);
-  }
+	remove() {
+		this.collection.removeIndex([this.name]);
+		return this.collection.removeField(this.name);
+	}
 
-  columnName() {
-    if (this.options.field) {
-      return this.options.field;
-    }
+	columnName() {
+		if (this.options.field) {
+			return this.options.field;
+		}
 
-    if (this.database.options.underscored) {
-      return snakeCase(this.name);
-    }
+		if (this.database.options.underscored) {
+			return snakeCase(this.name);
+		}
 
-    return this.name;
-  }
+		return this.name;
+	}
 
-  async existsInDb(options?: Transactionable) {
-    const opts = {
-      transaction: options?.transaction,
-    };
-    let sql;
-    if (this.database.sequelize.getDialect() === 'sqlite') {
-      sql = `SELECT *
+	async existsInDb(options?: Transactionable) {
+		const opts = {
+			transaction: options?.transaction,
+		};
+		let sql;
+		if (this.database.sequelize.getDialect() === "sqlite") {
+			sql = `SELECT *
              from pragma_table_info('${this.collection.model.tableName}')
              WHERE name = '${this.columnName()}'`;
-    } else if (this.database.inDialect('mysql', 'mariadb')) {
-      sql = `
+		} else if (this.database.inDialect("mysql", "mariadb")) {
+			sql = `
         select column_name
         from INFORMATION_SCHEMA.COLUMNS
         where TABLE_SCHEMA = '${this.database.options.database}'
           AND TABLE_NAME = '${this.collection.model.tableName}'
           AND column_name = '${this.columnName()}'
       `;
-    } else {
-      sql = `
+		} else {
+			sql = `
         select column_name
         from INFORMATION_SCHEMA.COLUMNS
         where TABLE_NAME = '${this.collection.model.tableName}'
           AND column_name = '${this.columnName()}'
-          AND table_schema = '${this.collection.collectionSchema() || 'public'}'
+          AND table_schema = '${this.collection.collectionSchema() || "public"}'
       `;
-    }
-    const [rows] = await this.database.sequelize.query(sql, opts);
-    return rows.length > 0;
-  }
+		}
+		const [rows] = await this.database.sequelize.query(sql, opts);
+		return rows.length > 0;
+	}
 
-  merge(obj: any) {
-    Object.assign(this.options, obj);
-  }
+	merge(obj: any) {
+		Object.assign(this.options, obj);
+	}
 
-  bind() {
-    const { model } = this.context.collection;
-    model.rawAttributes[this.name] = this.toSequelize();
+	bind() {
+		const { model } = this.context.collection;
+		model.rawAttributes[this.name] = this.toSequelize();
 
-    // @ts-ignore
-    model.refreshAttributes();
-    if (this.options.index) {
-      this.context.collection.addIndex([this.name]);
-    }
-  }
+		// @ts-ignore
+		model.refreshAttributes();
+		if (this.options.index) {
+			this.context.collection.addIndex([this.name]);
+		}
+	}
 
-  unbind() {
-    const { model } = this.context.collection;
+	unbind() {
+		const { model } = this.context.collection;
 
-    delete model.prototype[this.name];
+		delete model.prototype[this.name];
 
-    model.removeAttribute(this.name);
-    if (this.options.index || this.options.unique) {
-      this.context.collection.removeIndex([this.name]);
-    }
-  }
+		model.removeAttribute(this.name);
+		if (this.options.index || this.options.unique) {
+			this.context.collection.removeIndex([this.name]);
+		}
+	}
 
-  toSequelize(): any {
-    const opts = _.omit(this.options, ['name']);
+	toSequelize(): any {
+		const opts = _.omit(this.options, ["name"]);
 
-    if (this.dataType) {
-      // @ts-ignore
-      Object.assign(opts, { type: this.database.sequelize.normalizeDataType(this.dataType) });
-    }
+		if (this.dataType) {
+			Object.assign(opts, {
+				// @ts-ignore
+				type: this.database.sequelize.normalizeDataType(this.dataType),
+			});
+		}
 
-    Object.assign(opts, this.additionalSequelizeOptions());
+		Object.assign(opts, this.additionalSequelizeOptions());
 
-    return opts;
-  }
+		return opts;
+	}
 
-  additionalSequelizeOptions() {
-    return {};
-  }
+	additionalSequelizeOptions() {
+		return {};
+	}
 
-  typeToString() {
-    return this.dataType.toString();
-  }
+	typeToString() {
+		return this.dataType.toString();
+	}
 }

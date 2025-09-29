@@ -1,4 +1,4 @@
 export default {
-  name: 'tests',
-  fields: [{ type: 'string', name: 'n2' }],
+	name: "tests",
+	fields: [{ type: "string", name: "n2" }],
 };

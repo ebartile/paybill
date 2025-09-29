@@ -1,22 +1,22 @@
-import { Database, mockDatabase } from '../../src';
-import { PercentInterface } from '../../src/interfaces/percent-interface';
+import { Database, mockDatabase } from "@paybilldev/sequelize";
+import { PercentInterface } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('percent interface', () => {
-  let db: Database;
+describe("percent interface", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
-    await db.clean({ drop: true });
-  });
+	beforeEach(async () => {
+		db = await mockDatabase();
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should render percent interface', async () => {
-    const percentInterface = new PercentInterface({});
-    const value = percentInterface.toString(0.5);
-    expect(value).toBe('50%');
-  });
+	it("should render percent interface", async () => {
+		const percentInterface = new PercentInterface({});
+		const value = percentInterface.toString(0.5);
+		expect(value).toBe("50%");
+	});
 });

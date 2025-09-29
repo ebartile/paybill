@@ -1,6 +1,6 @@
-import { extend } from '../../../src/database';
+import { extend } from "@paybilldev/sequelize";
 
 export default extend({
-  name: 'tests',
-  fields: [{ type: 'string', name: 'n0' }],
+	name: "tests",
+	fields: [{ type: "string", name: "n0" }],
 });
