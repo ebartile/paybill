@@ -1,7 +1,7 @@
-import { NumberInterface } from './number-interface';
+import { NumberInterface } from "./number-interface";
 
 export class IntegerInterface extends NumberInterface {
-  validate(value): boolean {
-    return true;
-  }
+	validate(value): boolean {
+		return true;
+	}
 }

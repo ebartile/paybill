@@ -1,84 +1,86 @@
-import { Database, type IDatabaseOptions } from './database';
-import { customAlphabet } from 'nanoid';
-import path from 'path';
+import { Database, type IDatabaseOptions } from "./database";
+import { customAlphabet } from "nanoid";
+import path from "path";
 
 export class MockDatabase extends Database {
-  constructor(options: IDatabaseOptions) {
-    super({
-      // SQLITE 
-      storage: ':memory:',
-      dialect: 'sqlite',
+	constructor(options: IDatabaseOptions) {
+		super({
+			// // SQLITE
+			// storage: ':memory:',
+			// dialect: 'sqlite',
 
-      // // MYSQL
-      // dialect: 'mysql', // default to MySQL
-      // host: '127.0.0.1', // optional, adjust as needed
-      // port: 3306,        // optional, adjust as needed
-      // username: 'root',  // optional
-      // password: 'password',      // optional
-      // database: 'test',  // default database
+			// MYSQL
+			dialect: "mysql", // default to MySQL
+			host: "127.0.0.1", // optional, adjust as needed
+			port: 3306, // optional, adjust as needed
+			username: "root", // optional
+			password: "password", // optional
+			database: "test", // default database
 
-      // // PostgreSQL
-      // dialect: 'postgres', // default to PostreSQL
-      // host: '127.0.0.1', // optional, adjust as needed
-      // port: 5432,        // optional, adjust as needed
-      // username: 'postgres',  // optional
-      // password: 'postgres',      // optional
-      // database: 'test',  // default database
+			// // PostgreSQL
+			// dialect: 'postgres', // default to PostreSQL
+			// host: '127.0.0.1', // optional, adjust as needed
+			// port: 5432,        // optional, adjust as needed
+			// username: 'postgres',  // optional
+			// password: 'postgres',      // optional
+			// database: 'test',  // default database
 
-
-      ...options,
-    });
-  }
+			...options,
+		});
+	}
 }
 
 interface TestDatabaseOptions extends IDatabaseOptions {
-  distributor_port?: number;
+	distributor_port?: number;
 }
 
 export function mockDatabase(options: TestDatabaseOptions = {}): MockDatabase {
-  // eslint-disable-next-line prefer-const
-  let db: any;
+	// eslint-disable-next-line prefer-const
+	let db: any;
 
-  if (options.tablePrefix) {
-    let configKey = 'database';
-    if (options.dialect === 'sqlite') {
-      configKey = 'storage';
-    } else {
-      configKey = 'database';
-    }
+	if (options.tablePrefix) {
+		let configKey = "database";
+		if (options.dialect === "sqlite") {
+			configKey = "storage";
+		} else {
+			configKey = "database";
+		}
 
-    const shouldChange = () => {
-      if (options.dialect === 'sqlite') {
-        return !options[configKey].includes(options.tablePrefix);
-      }
+		const shouldChange = () => {
+			if (options.dialect === "sqlite") {
+				return !options[configKey].includes(options.tablePrefix);
+			}
 
-      return !options[configKey].startsWith(options.tablePrefix);
-    };
+			return !options[configKey].startsWith(options.tablePrefix);
+		};
 
-    if (options[configKey] && shouldChange()) {
-      const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 10);
+		if (options[configKey] && shouldChange()) {
+			const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
-      const instanceId = `d_${nanoid()}`;
-      const databaseName = `${options.tablePrefix}_${instanceId}`;
+			const instanceId = `d_${nanoid()}`;
+			const databaseName = `${options.tablePrefix}_${instanceId}`;
 
-      if (options.dialect === 'sqlite') {
-        options.storage = path.resolve(path.dirname(options.storage), databaseName);
-      } else {
-        options.database = databaseName;
-      }
-    }
+			if (options.dialect === "sqlite") {
+				options.storage = path.resolve(
+					path.dirname(options.storage),
+					databaseName,
+				);
+			} else {
+				options.database = databaseName;
+			}
+		}
 
-    if (options.distributor_port) {
-      options.hooks = options.hooks || {};
+		if (options.distributor_port) {
+			options.hooks = options.hooks || {};
 
-      options.hooks.beforeConnect = async (config) => {
-        const url = `http://127.0.0.1:${options.distributor_port}/acquire?via=${db.instanceId}&name=${config.database}`;
-        await fetch(url);
-      };
-    }
-  }
+			options.hooks.beforeConnect = async (config) => {
+				const url = `http://127.0.0.1:${options.distributor_port}/acquire?via=${db.instanceId}&name=${config.database}`;
+				await fetch(url);
+			};
+		}
+	}
 
-  db = new MockDatabase(options);
+	db = new MockDatabase(options);
 
-  return db as MockDatabase;
+	return db as MockDatabase;
 }

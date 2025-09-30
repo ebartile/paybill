@@ -1,210 +1,225 @@
-import lodash from 'lodash';
-import { Collection } from '../collection';
-import sqlParser from '../sql-parser';
-import QueryInterface, { type TableInfo } from './query-interface';
-import { Transaction } from 'sequelize';
+import lodash from "lodash";
+import { Collection } from "../collection";
+import sqlParser from "../sql-parser";
+import QueryInterface, { type TableInfo } from "./query-interface";
+import { Transaction } from "sequelize";
 
 export default class PostgresQueryInterface extends QueryInterface {
-  constructor(db) {
-    super(db);
-  }
+	constructor(db) {
+		super(db);
+	}
 
-  async setAutoIncrementVal(options: {
-    tableInfo: TableInfo;
-    columnName: string;
-    seqName?: string;
-    currentVal?: number;
-    transaction?: Transaction;
-  }): Promise<void> {
-    const { tableInfo, columnName, seqName, currentVal, transaction } = options;
+	async setAutoIncrementVal(options: {
+		tableInfo: TableInfo;
+		columnName: string;
+		seqName?: string;
+		currentVal?: number;
+		transaction?: Transaction;
+	}): Promise<void> {
+		const { tableInfo, columnName, seqName, currentVal, transaction } = options;
 
-    if (!seqName) {
-      throw new Error('seqName is required to set auto increment val in postgres');
-    }
+		if (!seqName) {
+			throw new Error(
+				"seqName is required to set auto increment val in postgres",
+			);
+		}
 
-    await this.db.sequelize.query(
-      `alter table ${this.db.utils.quoteTable({
-        tableName: tableInfo.tableName,
-        schema: tableInfo.schema,
-      })}
+		await this.db.sequelize.query(
+			`alter table ${this.db.utils.quoteTable({
+				tableName: tableInfo.tableName,
+				schema: tableInfo.schema,
+			})}
             alter column "${columnName}" set default nextval('${seqName}')`,
-      {
-        transaction,
-      },
-    );
+			{
+				transaction,
+			},
+		);
 
-    if (currentVal) {
-      await this.db.sequelize.query(`select setval('${seqName}', ${currentVal})`, {
-        transaction,
-      });
-    }
-  }
+		if (currentVal) {
+			await this.db.sequelize.query(
+				`select setval('${seqName}', ${currentVal})`,
+				{
+					transaction,
+				},
+			);
+		}
+	}
 
-  async getAutoIncrementInfo(options: {
-    tableInfo: TableInfo;
-    fieldName: string;
-    transaction: Transaction;
-  }): Promise<{ seqName?: string; currentVal: number }> {
-    const fieldName = options.fieldName || 'id';
-    const tableInfo = options.tableInfo;
-    const transaction = options.transaction;
+	async getAutoIncrementInfo(options: {
+		tableInfo: TableInfo;
+		fieldName: string;
+		transaction: Transaction;
+	}): Promise<{ seqName?: string; currentVal: number }> {
+		const fieldName = options.fieldName || "id";
+		const tableInfo = options.tableInfo;
+		const transaction = options.transaction;
 
-    const sequenceNameResult = await this.db.sequelize.query(
-      `SELECT column_default
+		const sequenceNameResult = await this.db.sequelize.query(
+			`SELECT column_default
            FROM information_schema.columns
            WHERE table_name = '${tableInfo.tableName}'
-             and table_schema = '${tableInfo.schema || 'public'}'
+             and table_schema = '${tableInfo.schema || "public"}'
              and "column_name" = '${fieldName}';`,
-      {
-        transaction,
-      },
-    );
+			{
+				transaction,
+			},
+		);
 
-    const columnDefault = sequenceNameResult[0][0]['column_default'];
+		const columnDefault = sequenceNameResult[0][0]["column_default"];
 
-    const regex = new RegExp(/nextval\('(.*)'::regclass\)/);
-    const match = regex.exec(columnDefault);
+		const regex = new RegExp(/nextval\('(.*)'::regclass\)/);
+		const match = regex.exec(columnDefault);
 
-    const sequenceName = match[1];
+		const sequenceName = match[1];
 
-    const sequenceCurrentValResult = await this.db.sequelize.query(
-      `select last_value
+		const sequenceCurrentValResult = await this.db.sequelize.query(
+			`select last_value
            from ${sequenceName}`,
-      {
-        transaction,
-      },
-    );
+			{
+				transaction,
+			},
+		);
 
-    const sequenceCurrentVal = parseInt(sequenceCurrentValResult[0][0]['last_value']);
+		const sequenceCurrentVal = parseInt(
+			sequenceCurrentValResult[0][0]["last_value"],
+		);
 
-    return {
-      seqName: sequenceName,
-      currentVal: sequenceCurrentVal,
-    };
-  }
+		return {
+			seqName: sequenceName,
+			currentVal: sequenceCurrentVal,
+		};
+	}
 
-  async collectionTableExists(collection: Collection, options?) {
-    const transaction = options?.transaction;
+	async collectionTableExists(collection: Collection, options?) {
+		const transaction = options?.transaction;
 
-    const tableName = collection.model.tableName;
-    const schema = collection.collectionSchema() || 'public';
+		const tableName = collection.model.tableName;
+		const schema = collection.collectionSchema() || "public";
 
-    const sql = `SELECT EXISTS(SELECT 1
+		const sql = `SELECT EXISTS(SELECT 1
                                FROM information_schema.tables
                                WHERE table_schema = '${schema}'
                                  AND table_name = '${tableName}')`;
 
-    const results = await this.db.sequelize.query(sql, { type: 'SELECT', transaction });
-    return results[0]['exists'];
-  }
+		const results = await this.db.sequelize.query(sql, {
+			type: "SELECT",
+			transaction,
+		});
+		return results[0]["exists"];
+	}
 
-  async listViews(options?: { schema?: string }) {
-    const targetSchema = options?.schema || this.db.options?.schema || 'public';
+	async listViews(options?: { schema?: string }) {
+		const targetSchema = options?.schema || this.db.options?.schema || "public";
 
-    const sql = targetSchema
-      ? `
+		const sql = targetSchema
+			? `
       SELECT viewname as name, definition, schemaname as schema
       FROM pg_views
       WHERE schemaname = '${targetSchema}'
       ORDER BY viewname;
     `
-      : `
+			: `
       SELECT viewname as name, definition, schemaname as schema
       FROM pg_views
       WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
       ORDER BY viewname;
     `;
 
-    return await this.db.sequelize.query(sql, { type: 'SELECT' });
-  }
+		return await this.db.sequelize.query(sql, { type: "SELECT" });
+	}
 
-  async viewDef(viewName: string) {
-    const [schema, name] = viewName.split('.');
+	async viewDef(viewName: string) {
+		const [schema, name] = viewName.split(".");
 
-    const viewDefQuery = await this.db.sequelize.query(
-      `
+		const viewDefQuery = await this.db.sequelize.query(
+			`
     select pg_get_viewdef(format('%I.%I', '${schema}', '${name}')::regclass, true) as definition
     `,
-      { type: 'SELECT' },
-    );
+			{ type: "SELECT" },
+		);
 
-    return lodash.trim(viewDefQuery[0]['definition']);
-  }
+		return lodash.trim(viewDefQuery[0]["definition"]);
+	}
 
-  parseSQL(sql: string): any {
-    return sqlParser.parse(sql, {
-      database: 'Postgresql',
-    });
-  }
+	parseSQL(sql: string): any {
+		return sqlParser.parse(sql, {
+			database: "Postgresql",
+		});
+	}
 
-  async viewColumnUsage(options): Promise<{
-    [view_column_name: string]: {
-      column_name: string;
-      table_name: string;
-      table_schema?: string;
-    };
-  }> {
-    const { viewName, schema = 'public' } = options;
-    const sql = `
+	async viewColumnUsage(options): Promise<{
+		[view_column_name: string]: {
+			column_name: string;
+			table_name: string;
+			table_schema?: string;
+		};
+	}> {
+		const { viewName, schema = "public" } = options;
+		const sql = `
       SELECT *
       FROM information_schema.view_column_usage
       WHERE view_schema = '${schema}'
         AND view_name = '${viewName}';
     `;
 
-    const columnUsages = (await this.db.sequelize.query(sql, { type: 'SELECT' })) as Array<{
-      column_name: string;
-      table_name: string;
-      table_schema: string;
-    }>;
+		const columnUsages = (await this.db.sequelize.query(sql, {
+			type: "SELECT",
+		})) as Array<{
+			column_name: string;
+			table_name: string;
+			table_schema: string;
+		}>;
 
-    const def = await this.viewDef(`${schema}.${viewName}`);
+		const def = await this.viewDef(`${schema}.${viewName}`);
 
-    try {
-      const { ast } = this.parseSQL(def);
-      const columns = ast[0].columns;
+		try {
+			const { ast } = this.parseSQL(def);
+			const columns = ast[0].columns;
 
-      const usages = columns
-        .map((column) => {
-          const fieldAlias = column.as || column.expr.column;
-          const columnUsage = columnUsages.find((columnUsage) => {
-            let columnExprTable = column.expr.table;
+			const usages = columns
+				.map((column) => {
+					const fieldAlias = column.as || column.expr.column;
+					const columnUsage = columnUsages.find((columnUsage) => {
+						let columnExprTable = column.expr.table;
 
-            // handle column alias
-            const from = ast[0].from;
-            if (columnExprTable === null && column.expr.type === 'column_ref') {
-              columnExprTable = from[0].table;
-            } else {
-              const findAs = from.find((from) => from.as === columnExprTable);
+						// handle column alias
+						const from = ast[0].from;
+						if (columnExprTable === null && column.expr.type === "column_ref") {
+							columnExprTable = from[0].table;
+						} else {
+							const findAs = from.find((from) => from.as === columnExprTable);
 
-              if (findAs) {
-                columnExprTable = findAs.table;
-              }
-            }
+							if (findAs) {
+								columnExprTable = findAs.table;
+							}
+						}
 
-            return columnUsage.column_name === column.expr.column && columnUsage.table_name === columnExprTable;
-          });
+						return (
+							columnUsage.column_name === column.expr.column &&
+							columnUsage.table_name === columnExprTable
+						);
+					});
 
-          return [
-            fieldAlias,
-            columnUsage
-              ? {
-                  ...columnUsage,
-                }
-              : null,
-          ];
-        })
-        .filter(([, columnUsage]) => columnUsage !== null);
+					return [
+						fieldAlias,
+						columnUsage
+							? {
+									...columnUsage,
+								}
+							: null,
+					];
+				})
+				.filter(([, columnUsage]) => columnUsage !== null);
 
-      return Object.fromEntries(usages);
-    } catch (e) {
-      console.log(e);
-      return {};
-    }
-  }
+			return Object.fromEntries(usages);
+		} catch (e) {
+			console.log(e);
+			return {};
+		}
+	}
 
-  async showTableDefinition(tableInfo: TableInfo): Promise<any> {
-    const showFunc = `
+	async showTableDefinition(tableInfo: TableInfo): Promise<any> {
+		const showFunc = `
 CREATE OR REPLACE FUNCTION show_create_table(p_schema text, p_table_name text)
 RETURNS text AS
 $BODY$
@@ -221,19 +236,19 @@ FROM (
 $BODY$
   LANGUAGE SQL STABLE;
     `;
-    await this.db.sequelize.query(showFunc, { type: 'RAW' });
+		await this.db.sequelize.query(showFunc, { type: "RAW" });
 
-    const res = await this.db.sequelize.query(
-      `SELECT show_create_table('${tableInfo.schema || 'public'}', '${tableInfo.tableName}')`,
-      {
-        type: 'SELECT',
-      },
-    );
+		const res = await this.db.sequelize.query(
+			`SELECT show_create_table('${tableInfo.schema || "public"}', '${tableInfo.tableName}')`,
+			{
+				type: "SELECT",
+			},
+		);
 
-    return res[0]['show_create_table'];
-  }
+		return res[0]["show_create_table"];
+	}
 
-  public generateJoinOnForJSONArray(left: string, right: string) {
-    return this.db.sequelize.literal(`${left}=any(${right})`);
-  }
+	public generateJoinOnForJSONArray(left: string, right: string) {
+		return this.db.sequelize.literal(`${left}=any(${right})`);
+	}
 }

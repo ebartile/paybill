@@ -1,104 +1,108 @@
-import { Database, FilterParser, mockDatabase } from '../src';
-import { Op } from 'sequelize';
+import { Database, FilterParser, mockDatabase } from "@paybilldev/sequelize";
+import { Op } from "sequelize";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-describe('filter by related', () => {
-  let db: Database;
+describe("filter by related", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
-    await db.clean({ drop: true });
-    db.collection({
-      name: 'users',
-      fields: [
-        { type: 'string', name: 'name' },
-        { type: 'hasMany', name: 'posts' },
-      ],
-    });
+	beforeEach(async () => {
+		db = await mockDatabase();
+		await db.clean({ drop: true });
+		db.collection({
+			name: "users",
+			fields: [
+				{ type: "string", name: "name" },
+				{ type: "hasMany", name: "posts" },
+			],
+		});
 
-    db.collection({
-      name: 'posts',
-      fields: [
-        { type: 'string', name: 'title' },
-        {
-          type: 'hasMany',
-          name: 'comments',
-        },
-      ],
-    });
+		db.collection({
+			name: "posts",
+			fields: [
+				{ type: "string", name: "title" },
+				{
+					type: "hasMany",
+					name: "comments",
+				},
+			],
+		});
 
-    db.collection({
-      name: 'comments',
-      fields: [
-        { type: 'string', name: 'content' },
-        {
-          type: 'belongsTo',
-          name: 'post',
-        },
-      ],
-    });
+		db.collection({
+			name: "comments",
+			fields: [
+				{ type: "string", name: "content" },
+				{
+					type: "belongsTo",
+					name: "post",
+				},
+			],
+		});
 
-    await db.sync();
-  });
+		await db.sync();
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  test('filter item by string', async () => {
-    const UserCollection = db.collection({
-      name: 'users',
-      fields: [{ type: 'string', name: 'name' }],
-    });
+	test("filter item by string", async () => {
+		const UserCollection = db.collection({
+			name: "users",
+			fields: [{ type: "string", name: "name" }],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const filterParser = new FilterParser(
-      {
-        name: 'hello',
-      },
-      {
-        collection: UserCollection,
-      },
-    );
+		const filterParser = new FilterParser(
+			{
+				name: "hello",
+			},
+			{
+				collection: UserCollection,
+			},
+		);
 
-    const filterParams = filterParser.toSequelizeParams();
+		const filterParams = filterParser.toSequelizeParams();
 
-    expect(filterParams).toMatchObject({
-      where: {
-        name: 'hello',
-      },
-    });
-  });
+		expect(filterParams).toMatchObject({
+			where: {
+				name: "hello",
+			},
+		});
+	});
 
-  test('hasMany', async () => {
-    const filter = {
-      'posts.title.$iLike': '%hello%',
-    };
+	test("hasMany", async () => {
+		const filter = {
+			"posts.title.$iLike": "%hello%",
+		};
 
-    const filterParser = new FilterParser(filter, {
-      collection: db.getCollection('users'),
-    });
+		const filterParser = new FilterParser(filter, {
+			collection: db.getCollection("users"),
+		});
 
-    const filterParams = filterParser.toSequelizeParams();
+		const filterParams = filterParser.toSequelizeParams();
 
-    expect(filterParams.where['$posts.title$'][Op.iLike]).toEqual('%hello%');
-    expect(filterParams.include[0]['association']).toEqual('posts');
-  });
+		expect(filterParams.where["$posts.title$"][Op.iLike]).toEqual("%hello%");
+		expect(filterParams.include[0]["association"]).toEqual("posts");
+	});
 
-  test('belongsTo', async () => {
-    const filter = {
-      'posts.comments.content.$iLike': '%hello%',
-    };
+	test("belongsTo", async () => {
+		const filter = {
+			"posts.comments.content.$iLike": "%hello%",
+		};
 
-    const filterParser = new FilterParser(filter, {
-      collection: db.getCollection('users'),
-    });
+		const filterParser = new FilterParser(filter, {
+			collection: db.getCollection("users"),
+		});
 
-    const filterParams = filterParser.toSequelizeParams();
+		const filterParams = filterParser.toSequelizeParams();
 
-    expect(filterParams.where['$posts.comments.content$'][Op.iLike]).toEqual('%hello%');
-    expect(filterParams.include[0]['association']).toEqual('posts');
-    expect(filterParams.include[0]['include'][0]['association']).toEqual('comments');
-  });
+		expect(filterParams.where["$posts.comments.content$"][Op.iLike]).toEqual(
+			"%hello%",
+		);
+		expect(filterParams.include[0]["association"]).toEqual("posts");
+		expect(filterParams.include[0]["include"][0]["association"]).toEqual(
+			"comments",
+		);
+	});
 });

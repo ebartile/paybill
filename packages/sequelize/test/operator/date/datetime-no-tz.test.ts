@@ -1,200 +1,210 @@
-import { mockDatabase, Database, Repository } from '../../../src';
+import { mockDatabase, Database, Repository } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-describe('datetimeNoTz date operator test', () => {
-  let db: Database;
+function getSystemTimezoneOffset() {
+	const offsetMinutes = new Date().getTimezoneOffset(); // in minutes, relative to UTC
+	const sign = offsetMinutes > 0 ? "-" : "+";
+	const pad = (n) => String(Math.floor(Math.abs(n))).padStart(2, "0");
+	const hours = pad(offsetMinutes / -60);
+	const minutes = pad(offsetMinutes % 60);
 
-  let repository: Repository;
+	return `${sign}${hours}:${minutes}`;
+}
 
-  afterEach(async () => {
-    await db.close();
-  });
+describe("datetimeNoTz date operator test", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({
-      timezone: '+00:00',
-    });
+	let repository: Repository;
 
-    await db.clean({ drop: true });
-    const Test = db.collection({
-      name: 'tests',
-      fields: [
-        {
-          name: 'date1',
-          type: 'datetimeNoTz',
-        },
-        {
-          type: 'string',
-          name: 'name',
-        },
-      ],
-    });
-    repository = Test.repository;
-    await db.sync();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  test('$dateOn', async () => {
-    await repository.create({
-      values: [
-        {
-          date1: '2023-01-01 00:00:00',
-          name: 'u0',
-        },
-        {
-          date1: '2023-01-01 00:00:00',
-          name: 'u1',
-        },
-        {
-          date1: '2022-12-31 16:00:00',
-          name: 'u2',
-        },
-        {
-          date1: '2022-12-31 16:00:00',
-          name: 'u3',
-        },
-      ],
-    });
+	beforeEach(async () => {
+		db = await mockDatabase({
+			timezone: getSystemTimezoneOffset(),
+		});
 
-    let count: number;
+		await db.clean({ drop: true });
+		const Test = db.collection({
+			name: "tests",
+			fields: [
+				{
+					name: "date1",
+					type: "datetimeNoTz",
+				},
+				{
+					type: "string",
+					name: "name",
+				},
+			],
+		});
+		repository = Test.repository;
+		await db.sync();
+	});
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateOn': '2023-01-01',
-      },
-    });
+	test("$dateOn", async () => {
+		await repository.create({
+			values: [
+				{
+					date1: "2023-01-01 00:00:00",
+					name: "u0",
+				},
+				{
+					date1: "2023-01-01 00:00:00",
+					name: "u1",
+				},
+				{
+					date1: "2022-12-31 16:00:00",
+					name: "u2",
+				},
+				{
+					date1: "2022-12-31 16:00:00",
+					name: "u3",
+				},
+			],
+		});
 
-    expect(count).toBe(2);
+		let count: number;
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateOn': '2022-12-31',
-      },
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateOn": "2023-01-01",
+			},
+		});
 
-    expect(count).toBe(2);
+		expect(count).toBe(2);
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateOn': '2022-12-31 16:00:00',
-      },
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateOn": "2022-12-31",
+			},
+		});
 
-    expect(count).toBe(2);
+		expect(count).toBe(2);
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateOn': '2022-12-31 16:00:01',
-      },
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateOn": "2022-12-31 16:00:00",
+			},
+		});
 
-    expect(count).toBe(0);
-  });
+		expect(count).toBe(2);
 
-  test('$dateBefore', async () => {
-    await repository.create({
-      values: [
-        {
-          date1: '2023-01-01 00:00:00',
-          name: 'u0',
-        },
-        {
-          date1: '2023-01-01 00:00:00',
-          name: 'u1',
-        },
-        {
-          date1: '2022-12-31 16:00:00',
-          name: 'u2',
-        },
-        {
-          date1: '2022-12-31 16:00:00',
-          name: 'u3',
-        },
-      ],
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateOn": "2022-12-31 16:00:01",
+			},
+		});
 
-    let count: number;
+		expect(count).toBe(0);
+	});
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateBefore': '2023-01-01',
-      },
-    });
-    expect(count).toBe(2);
+	test("$dateBefore", async () => {
+		await repository.create({
+			values: [
+				{
+					date1: "2023-01-01 00:00:00",
+					name: "u0",
+				},
+				{
+					date1: "2023-01-01 00:00:00",
+					name: "u1",
+				},
+				{
+					date1: "2022-12-31 16:00:00",
+					name: "u2",
+				},
+				{
+					date1: "2022-12-31 16:00:00",
+					name: "u3",
+				},
+			],
+		});
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateBefore': '2022-12-31',
-      },
-    });
+		let count: number;
 
-    expect(count).toBe(0);
-  });
+		count = await repository.count({
+			filter: {
+				"date1.$dateBefore": "2023-01-01",
+			},
+		});
+		expect(count).toBe(2);
 
-  test('$dateBefore2', async () => {
-    await repository.create({
-      values: [
-        {
-          date1: '2024-09-08 15:33:54',
-          name: 'u0',
-        },
-      ],
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateBefore": "2022-12-31",
+			},
+		});
 
-    const count = await repository.count({
-      filter: {
-        'date1.$dateBefore': '2024-09-08 15:33:55',
-      },
-    });
+		expect(count).toBe(0);
+	});
 
-    expect(count).toBe(1);
-  });
+	test("$dateBefore2", async () => {
+		await repository.create({
+			values: [
+				{
+					date1: "2024-09-08 15:33:54",
+					name: "u0",
+				},
+			],
+		});
 
-  test('dateBetween', async () => {
-    await repository.create({
-      values: [
-        {
-          date1: '2023-01-01 00:00:00',
-          name: 'u0',
-        },
-        {
-          date1: '2023-01-01 00:00:00',
-          name: 'u1',
-        },
-        {
-          date1: '2022-12-31 16:00:00',
-          name: 'u2',
-        },
-        {
-          date1: '2022-12-31 16:00:00',
-          name: 'u3',
-        },
-      ],
-    });
+		const count = await repository.count({
+			filter: {
+				"date1.$dateBefore": "2024-09-08 15:33:55",
+			},
+		});
 
-    let count: number;
+		expect(count).toBe(1);
+	});
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateBetween': ['2022-12-31', '2023-01-01'],
-      },
-    });
+	test("dateBetween", async () => {
+		await repository.create({
+			values: [
+				{
+					date1: "2023-01-01 00:00:00",
+					name: "u0",
+				},
+				{
+					date1: "2023-01-01 00:00:00",
+					name: "u1",
+				},
+				{
+					date1: "2022-12-31 16:00:00",
+					name: "u2",
+				},
+				{
+					date1: "2022-12-31 16:00:00",
+					name: "u3",
+				},
+			],
+		});
 
-    expect(count).toBe(4);
+		let count: number;
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateBetween': ['2022-12-31 16:00:00', '2023-01-01 00:00:00'],
-      },
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateBetween": ["2022-12-31", "2023-01-01"],
+			},
+		});
 
-    expect(count).toBe(4);
+		expect(count).toBe(4);
 
-    count = await repository.count({
-      filter: {
-        'date1.$dateBetween': ['2022-12-31 11:00:00', '2022-12-31 17:00:00'],
-      },
-    });
+		count = await repository.count({
+			filter: {
+				"date1.$dateBetween": ["2022-12-31 16:00:00", "2023-01-01 00:00:00"],
+			},
+		});
 
-    expect(count).toBe(2);
-  });
+		expect(count).toBe(4);
+
+		count = await repository.count({
+			filter: {
+				"date1.$dateBetween": ["2022-12-31 11:00:00", "2022-12-31 17:00:00"],
+			},
+		});
+
+		expect(count).toBe(2);
+	});
 });

@@ -1,25 +1,25 @@
-import Database from '../database';
-import MysqlQueryInterface from './mysql-query-interface';
-import PostgresQueryInterface from './postgres-query-interface';
-import SqliteQueryInterface from './sqlite-query-interface';
+import Database from "../database";
+import MysqlQueryInterface from "./mysql-query-interface";
+import PostgresQueryInterface from "./postgres-query-interface";
+import SqliteQueryInterface from "./sqlite-query-interface";
 
 export default function buildQueryInterface(db: Database) {
-  const map = {
-    mysql: MysqlQueryInterface,
-    mariadb: MysqlQueryInterface,
-    postgres: PostgresQueryInterface,
-    sqlite: SqliteQueryInterface,
-  };
+	const map = {
+		mysql: MysqlQueryInterface,
+		mariadb: MysqlQueryInterface,
+		postgres: PostgresQueryInterface,
+		sqlite: SqliteQueryInterface,
+	};
 
-  if (db.isPostgresCompatibleDialect()) {
-    return new PostgresQueryInterface(db);
-  }
+	if (db.isPostgresCompatibleDialect()) {
+		return new PostgresQueryInterface(db);
+	}
 
-  const dialect = db.options.dialect;
+	const dialect = db.options.dialect;
 
-  if (!map[dialect]) {
-    return null;
-  }
+	if (!map[dialect]) {
+		return null;
+	}
 
-  return new map[db.options.dialect](db);
+	return new map[db.options.dialect](db);
 }

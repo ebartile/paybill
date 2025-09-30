@@ -1,2 +1,2 @@
-export * from './assign';
-export * from './acl-role';
+export * from "./assign";
+export * from "./acl-role";

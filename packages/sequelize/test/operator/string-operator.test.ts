@@ -1,242 +1,242 @@
-import Database, { Collection, mockDatabase } from '../../src';
+import Database, { Collection, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('string operator', () => {
-  let db: Database;
+describe("string operator", () => {
+	let db: Database;
 
-  let User: Collection;
+	let User: Collection;
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  beforeEach(async () => {
-    db = await mockDatabase({});
+	beforeEach(async () => {
+		db = await mockDatabase({});
 
-    await db.clean({ drop: true });
+		await db.clean({ drop: true });
 
-    User = db.collection({
-      name: 'users',
-      fields: [{ type: 'string', name: 'name' }],
-    });
+		User = db.collection({
+			name: "users",
+			fields: [{ type: "string", name: "name" }],
+		});
 
-    await db.sync({
-      force: true,
-    });
-  });
+		await db.sync({
+			force: true,
+		});
+	});
 
-  it('should escape underscore in include operator', async () => {
-    const u1 = await db.getRepository('users').create({
-      values: {
-        name: 'names of u1',
-      },
-    });
+	it("should escape underscore in include operator", async () => {
+		const u1 = await db.getRepository("users").create({
+			values: {
+				name: "names of u1",
+			},
+		});
 
-    const u1Res = await db.getRepository('users').findOne({
-      filter: {
-        'name.$includes': '_',
-      },
-    });
+		const u1Res = await db.getRepository("users").findOne({
+			filter: {
+				"name.$includes": "_",
+			},
+		});
 
-    expect(u1Res).toBeNull();
-  });
+		expect(u1Res).toBeNull();
+	});
 
-  it('should query with include operator with array values', async () => {
-    await db.getRepository('users').create({
-      values: [
-        {
-          name: 'u1',
-        },
-        {
-          name: 'u2',
-        },
-      ],
-    });
+	it("should query with include operator with array values", async () => {
+		await db.getRepository("users").create({
+			values: [
+				{
+					name: "u1",
+				},
+				{
+					name: "u2",
+				},
+			],
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$includes': ['u1', 'u2'],
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$includes": ["u1", "u2"],
+			},
+		});
 
-    expect(res.length).toEqual(2);
-  });
+		expect(res.length).toEqual(2);
+	});
 
-  it('should query $notIncludes with array values', async () => {
-    await db.getRepository('users').create({
-      values: [
-        {
-          name: 'u1',
-        },
-        {
-          name: 'u2',
-        },
-      ],
-    });
+	it("should query $notIncludes with array values", async () => {
+		await db.getRepository("users").create({
+			values: [
+				{
+					name: "u1",
+				},
+				{
+					name: "u2",
+				},
+			],
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$notIncludes': ['u1', 'u2'],
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$notIncludes": ["u1", "u2"],
+			},
+		});
 
-    expect(res.length).toEqual(0);
-  });
+		expect(res.length).toEqual(0);
+	});
 
-  it('should query $notIncludes', async () => {
-    await db.getRepository('users').create({
-      values: {
-        name: 'u1',
-      },
-    });
+	it("should query $notIncludes", async () => {
+		await db.getRepository("users").create({
+			values: {
+				name: "u1",
+			},
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$notIncludes': 'u1',
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$notIncludes": "u1",
+			},
+		});
 
-    expect(res.length).toEqual(0);
-  });
+		expect(res.length).toEqual(0);
+	});
 
-  it('should query $startsWith', async () => {
-    await db.getRepository('users').create({
-      values: [
-        {
-          name: 'u1',
-        },
-        {
-          name: 'b1',
-        },
-        {
-          name: 'c1',
-        },
-      ],
-    });
+	it("should query $startsWith", async () => {
+		await db.getRepository("users").create({
+			values: [
+				{
+					name: "u1",
+				},
+				{
+					name: "b1",
+				},
+				{
+					name: "c1",
+				},
+			],
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$startsWith': ['u', 'b'],
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$startsWith": ["u", "b"],
+			},
+		});
 
-    expect(res.length).toEqual(2);
-  });
+		expect(res.length).toEqual(2);
+	});
 
-  it('should query $notStartsWith', async () => {
-    await db.getRepository('users').create({
-      values: [
-        {
-          name: 'u1',
-        },
-        {
-          name: 'v2',
-        },
-        {
-          name: 'b1',
-        },
-        {
-          name: 'b2',
-        },
-      ],
-    });
+	it("should query $notStartsWith", async () => {
+		await db.getRepository("users").create({
+			values: [
+				{
+					name: "u1",
+				},
+				{
+					name: "v2",
+				},
+				{
+					name: "b1",
+				},
+				{
+					name: "b2",
+				},
+			],
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$notStartsWith': ['u', 'v'],
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$notStartsWith": ["u", "v"],
+			},
+		});
 
-    expect(res.length).toEqual(2);
-  });
+		expect(res.length).toEqual(2);
+	});
 
-  it('should query $endWith', async () => {
-    await db.getRepository('users').create({
-      values: [
-        {
-          name: 'u1',
-        },
-        {
-          name: 'b1',
-        },
-        {
-          name: 'c1',
-        },
-        {
-          name: 'u2',
-        },
-      ],
-    });
+	it("should query $endWith", async () => {
+		await db.getRepository("users").create({
+			values: [
+				{
+					name: "u1",
+				},
+				{
+					name: "b1",
+				},
+				{
+					name: "c1",
+				},
+				{
+					name: "u2",
+				},
+			],
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$endWith': ['1'],
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$endWith": ["1"],
+			},
+		});
 
-    expect(res.length).toEqual(3);
-  });
+		expect(res.length).toEqual(3);
+	});
 
-  it('should query $notEndWith', async () => {
-    await db.getRepository('users').create({
-      values: [
-        {
-          name: 'u1',
-        },
-        {
-          name: 'b1',
-        },
-        {
-          name: 'c1',
-        },
-        {
-          name: 'u2',
-        },
-      ],
-    });
+	it("should query $notEndWith", async () => {
+		await db.getRepository("users").create({
+			values: [
+				{
+					name: "u1",
+				},
+				{
+					name: "b1",
+				},
+				{
+					name: "c1",
+				},
+				{
+					name: "u2",
+				},
+			],
+		});
 
-    const res = await db.getRepository('users').find({
-      filter: {
-        'name.$notEndWith': ['1'],
-      },
-    });
+		const res = await db.getRepository("users").find({
+			filter: {
+				"name.$notEndWith": ["1"],
+			},
+		});
 
-    expect(res.length).toEqual(1);
-  });
+		expect(res.length).toEqual(1);
+	});
 
-  it('should query with include operator', async () => {
-    const u1 = await db.getRepository('users').create({
-      values: {
-        name: 'names of u1',
-      },
-    });
+	it("should query with include operator", async () => {
+		const u1 = await db.getRepository("users").create({
+			values: {
+				name: "names of u1",
+			},
+		});
 
-    const u1Res = await db.getRepository('users').findOne({
-      filter: {
-        'name.$includes': 'u1',
-      },
-    });
+		const u1Res = await db.getRepository("users").findOne({
+			filter: {
+				"name.$includes": "u1",
+			},
+		});
 
-    expect(u1Res.get('id')).toEqual(u1.get('id'));
-  });
+		expect(u1Res.get("id")).toEqual(u1.get("id"));
+	});
 
-  it('should query with and ', async () => {
-    const u1 = await db.getRepository('users').create({
-      values: {
-        name: 'names of u1',
-      },
-    });
+	it("should query with and ", async () => {
+		const u1 = await db.getRepository("users").create({
+			values: {
+				name: "names of u1",
+			},
+		});
 
-    const u1Res = await db.getRepository('users').findOne({
-      filter: {
-        $and: [
-          {
-            'name.$includes': 'u1',
-          },
-        ],
-      },
-    });
+		const u1Res = await db.getRepository("users").findOne({
+			filter: {
+				$and: [
+					{
+						"name.$includes": "u1",
+					},
+				],
+			},
+		});
 
-    expect(u1Res.get('id')).toEqual(u1.get('id'));
-  });
+		expect(u1Res.get("id")).toEqual(u1.get("id"));
+	});
 });

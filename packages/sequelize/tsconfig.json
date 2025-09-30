@@ -1,17 +1,22 @@
 {
-  "extends": "@paybilldev/tsconfig",
-  "compilerOptions": {
-    "strict": false,
-    "rootDir": "./",
-    "outDir": "./dist",
-    "lib": ["esnext",],
-    "noUncheckedIndexedAccess": false,
-    "types": ["node",]
-  },
-  "exclude": [
-    "dist",
-    "node_modules",
-    
-  ],
-  "include": ["src", "test"]
+	"compilerOptions": {
+		"module": "NodeNext",
+		"target": "ESNext",
+		"lib": ["es6", "es7", "esnext"],
+		"types": ["node"],
+		"moduleResolution": "nodenext",
+		"noImplicitReturns": true,
+		"strict": false,
+		"strictFunctionTypes": true,
+		"noUnusedLocals": true,
+		"pretty": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"downlevelIteration": true,
+		"skipLibCheck": true,
+		"listEmittedFiles": true,
+		"noEmit": true
+	},
+	"exclude": ["dist", "node_modules"],
+	"include": ["src", "test"]
 }

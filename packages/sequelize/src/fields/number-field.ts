@@ -1,79 +1,81 @@
-import { DataTypes } from 'sequelize';
-import { type BaseColumnFieldOptions, Field } from './field';
+import { DataTypes } from "sequelize";
+import { type BaseColumnFieldOptions, Field } from "./field";
 
 export abstract class NumberField extends Field {}
 
 export class IntegerField extends NumberField {
-  get dataType() {
-    return DataTypes.INTEGER;
-  }
+	get dataType() {
+		return DataTypes.INTEGER;
+	}
 }
 
 export interface IntegerFieldOptions extends BaseColumnFieldOptions {
-  type: 'integer';
+	type: "integer";
 }
 
 export class BigIntField extends NumberField {
-  get dataType() {
-    return DataTypes.BIGINT;
-  }
+	get dataType() {
+		return DataTypes.BIGINT;
+	}
 }
 
 export interface BigIntFieldOptions extends BaseColumnFieldOptions {
-  type: 'bigInt';
+	type: "bigInt";
 }
 
 export class FloatField extends NumberField {
-  get dataType() {
-    return DataTypes.FLOAT;
-  }
+	get dataType() {
+		return DataTypes.FLOAT;
+	}
 }
 
 export interface FloatFieldOptions extends BaseColumnFieldOptions {
-  type: 'float';
+	type: "float";
 }
 
 export class DoubleField extends NumberField {
-  get dataType() {
-    return DataTypes.DOUBLE;
-  }
+	get dataType() {
+		return DataTypes.DOUBLE;
+	}
 }
 
 export interface DoubleFieldOptions extends BaseColumnFieldOptions {
-  type: 'double';
+	type: "double";
 }
 
 export class RealField extends NumberField {
-  get dataType() {
-    return DataTypes.REAL;
-  }
+	get dataType() {
+		return DataTypes.REAL;
+	}
 }
 
 export interface RealFieldOptions extends BaseColumnFieldOptions {
-  type: 'real';
+	type: "real";
 }
 
 export class DecimalField extends NumberField {
-  get dataType() {
-    return DataTypes.DECIMAL(this.options.precision, this.options.scale);
-  }
+	get dataType() {
+		return DataTypes.DECIMAL(this.options.precision, this.options.scale);
+	}
 
-  static optionsFromRawType(rawType: string) {
-    // infer precision and scale from rawType
-    // eg: DECIMAL(10, 2)
-    const matches = rawType.match(/DECIMAL\((\d+),\s*(\d+)\)/);
+	static optionsFromRawType(rawType: string) {
+		// infer precision and scale from rawType
+		// eg: DECIMAL(10, 2)
+		const matches = rawType.match(/DECIMAL\((\d+),\s*(\d+)\)/);
 
-    if (matches) {
-      return {
-        precision: parseInt(matches[1]),
-        scale: parseInt(matches[2]),
-      };
-    }
-  }
+		if (matches) {
+			return {
+				precision: parseInt(matches[1]),
+				scale: parseInt(matches[2]),
+			};
+		}
+
+		return null;
+	}
 }
 
 export interface DecimalFieldOptions extends BaseColumnFieldOptions {
-  type: 'decimal';
-  precision: number;
-  scale: number;
+	type: "decimal";
+	precision: number;
+	scale: number;
 }

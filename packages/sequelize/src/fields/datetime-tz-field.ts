@@ -1,8 +1,8 @@
-import { DateField } from './date-field';
-import { type BaseColumnFieldOptions } from './field';
+import { DateField } from "./date-field";
+import { type BaseColumnFieldOptions } from "./field";
 
 export class DatetimeTzField extends DateField {}
 
 export interface DatetimeTzFieldOptions extends BaseColumnFieldOptions {
-  type: 'datetimeTz';
+	type: "datetimeTz";
 }

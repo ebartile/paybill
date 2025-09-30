@@ -15,6 +15,8 @@ function parseUTC(value) {
 			start: value,
 		};
 	}
+
+	return null;
 }
 
 function parseYear(value) {
@@ -24,6 +26,7 @@ function parseYear(value) {
 			start: `${value}-01-01 00:00:00`,
 		};
 	}
+	return null;
 }
 
 function parseQuarter(value) {
@@ -34,6 +37,7 @@ function parseQuarter(value) {
 			start: dayjs(year, "YYYY").quarter(q).format("YYYY-MM-DD HH:mm:ss"),
 		};
 	}
+	return null;
 }
 
 export function parseWeek(value) {
@@ -77,6 +81,7 @@ export function parseWeek(value) {
 				.format("YYYY-MM-DD HH:mm:ss"),
 		};
 	}
+	return null;
 }
 
 function parseMonth(value) {
@@ -86,6 +91,7 @@ function parseMonth(value) {
 			start: `${value}-01 00:00:00`,
 		};
 	}
+	return null;
 }
 
 function parseDay(value) {
@@ -95,6 +101,7 @@ function parseDay(value) {
 			start: `${value} 00:00:00`,
 		};
 	}
+	return null;
 }
 
 function parseHour(value) {
@@ -104,6 +111,7 @@ function parseHour(value) {
 			start: `${value}:00:00`,
 		};
 	}
+	return null;
 }
 
 function parseMinute(value) {
@@ -113,6 +121,7 @@ function parseMinute(value) {
 			start: `${value}:00`,
 		};
 	}
+	return null;
 }
 
 function parseSecond(value) {
@@ -122,6 +131,7 @@ function parseSecond(value) {
 			start: `${value}`,
 		};
 	}
+	return null;
 }
 
 function parseMillisecond(value) {
@@ -131,6 +141,7 @@ function parseMillisecond(value) {
 			start: `${value}`,
 		};
 	}
+	return null;
 }
 
 const parsers = [
@@ -175,7 +186,7 @@ function dateRange(r: ParseDateResult) {
 
 export function parseDate(value: any, options = {} as { timezone?: string }) {
 	if (!value) {
-		return;
+		return null;
 	}
 	if (Array.isArray(value)) {
 		return parseDateBetween(value, options);
@@ -202,6 +213,7 @@ export function parseDate(value: any, options = {} as { timezone?: string }) {
 			return dateRange(r);
 		}
 	}
+	return null;
 }
 
 function parseDateBetween(value: any, options = {} as { timezone?: string }) {
@@ -231,7 +243,7 @@ function parseDateBetween(value: any, options = {} as { timezone?: string }) {
 		return newOp === "[)" ? [start, end] : [start, end, newOp];
 	}
 	if (typeof value !== "string") {
-		return;
+		return null;
 	}
 	const match = /(.+)((\+|-)\d\d:\d\d)$/.exec(value);
 	let timezone = options.timezone || "+00:00";
@@ -241,7 +253,7 @@ function parseDateBetween(value: any, options = {} as { timezone?: string }) {
 	}
 	const m = /^(\(|\[)(.+),(.+)(\)|\])$/.exec(value);
 	if (!m) {
-		return;
+		return null;
 	}
 	return parseDateBetween([m[2], m[3], `${m[1]}${m[4]}`, timezone]);
 }

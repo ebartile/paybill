@@ -3,15 +3,13 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	test: {
 		globals: true,
+		maxConcurrency: 1, // one test at a time
+		fileParallelism: false, // one test file at a time
+		exclude: ["node_modules", "dist"],
 		coverage: {
-			provider: 'istanbul', // <--- use 'istanbul' or 'v8'
-			reporter: ['text', 'lcov', 'html'],
-			exclude: ['node_modules/', 'test/', 'dist/'],
-		},
-		poolOptions: {
-			forks: {
-				execArgv: ["--expose-gc"],
-			},
+			provider: "istanbul",
+			reporter: ["text", "lcov", "html"],
+			exclude: ["node_modules/", "test/", "dist/"],
 		},
 	},
 });

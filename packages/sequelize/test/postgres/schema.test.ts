@@ -1,119 +1,125 @@
-import { Database, mockDatabase } from '../../src';
+import { Database, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('auth', () => {
-  let db: Database;
-  afterEach(async () => {
-    if (db) {
-      await db.close();
-    }
-  });
+describe("auth", () => {
+	let db: Database;
+	afterEach(async () => {
+		if (db) {
+			await db.close();
+		}
+	});
 
-  it('should auto create schema on prepare when schema missing', async () => {
-    const schemaName = Math.random().toString(36).substring(2);
+	it("should auto create schema on prepare when schema missing", async () => {
+		const schemaName = Math.random().toString(36).substring(2);
 
-    db = await mockDatabase({
-      schema: schemaName,
-    });
+		db = await mockDatabase({
+			schema: schemaName,
+		});
 
-    if (!db.inDialect('postgres')) return;
+		if (!db.inDialect("postgres")) return;
 
-    const querySchemaExists = async () =>
-      await db.sequelize.query(
-        `SELECT schema_name
+		const querySchemaExists = async () =>
+			await db.sequelize.query(
+				`SELECT schema_name
          FROM information_schema.schemata
          WHERE schema_name = '${schemaName}';`,
-      );
+			);
 
-    expect((await querySchemaExists())[0].length).toEqual(0);
-    await db.prepare();
-    expect((await querySchemaExists())[0].length).toEqual(1);
-  });
+		expect((await querySchemaExists())[0].length).toEqual(0);
+		await db.prepare();
+		expect((await querySchemaExists())[0].length).toEqual(1);
+	});
 });
 
-describe('postgres schema', () => {
-  let db: Database;
+describe("postgres schema", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({
-      schema: 'test_schema',
-    });
+	beforeEach(async () => {
+		db = await mockDatabase({
+			schema: "test_schema",
+		});
 
-    if (!db.inDialect('postgres')) return;
-  });
+		if (!db.inDialect("postgres")) return;
+	});
 
-  afterEach(async () => {
-    if (db.inDialect('postgres')) {
-      await db.sequelize.query(`DROP SCHEMA IF EXISTS ${db.options.schema} CASCADE;`);
-    }
-    await db.close();
-  });
+	afterEach(async () => {
+		if (db.inDialect("postgres")) {
+			await db.sequelize.query(
+				`DROP SCHEMA IF EXISTS ${db.options.schema} CASCADE;`,
+			);
+		}
+		await db.close();
+	});
 
-  it('should drop all tables in schemas', async () => {
-    if (!db.inDialect('postgres')) return;
+	it("should drop all tables in schemas", async () => {
+		if (!db.inDialect("postgres")) return;
 
-    const collection = db.collection({
-      name: 'test',
-    });
+		const collection = db.collection({
+			name: "test",
+		});
 
-    await db.sync();
+		await db.sync();
 
-    await db.clean({ drop: true });
+		await db.clean({ drop: true });
 
-    const tableInfo = await db.sequelize.query(
-      `SELECT *
+		const tableInfo = await db.sequelize.query(
+			`SELECT *
        FROM information_schema.tables
        where table_schema = '${db.options.schema}'`,
-    );
+		);
 
-    expect(tableInfo[0].length).toEqual(0);
-  });
+		expect(tableInfo[0].length).toEqual(0);
+	});
 
-  it('should support database schema option', async () => {
-    if (!db.inDialect('postgres')) return;
+	it("should support database schema option", async () => {
+		if (!db.inDialect("postgres")) return;
 
-    await db.clean({ drop: true });
+		await db.clean({ drop: true });
 
-    const tableInfo = await db.sequelize.query(
-      `SELECT *
+		const tableInfo = await db.sequelize.query(
+			`SELECT *
        FROM information_schema.tables
        where table_schema = '${db.options.schema}'`,
-    );
+		);
 
-    expect(tableInfo[0].length).toEqual(0);
+		expect(tableInfo[0].length).toEqual(0);
 
-    const collection = db.collection({
-      name: 'test',
-    });
+		const collection = db.collection({
+			name: "test",
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const newTableInfo = await db.sequelize.query(
-      `SELECT *
+		const newTableInfo = await db.sequelize.query(
+			`SELECT *
        FROM information_schema.tables
        where table_schema = '${db.options.schema}'`,
-    );
+		);
 
-    expect(newTableInfo[0].find((item) => item['table_name'] == collection.model.tableName)).toBeTruthy();
-  });
+		expect(
+			newTableInfo[0].find(
+				(item) => item["table_name"] == collection.model.tableName,
+			),
+		).toBeTruthy();
+	});
 
-  it('should update schema options', async () => {
-    if (!db.inDialect('postgres')) return;
+	it("should update schema options", async () => {
+		if (!db.inDialect("postgres")) return;
 
-    await db.clean({ drop: true });
+		await db.clean({ drop: true });
 
-    const collection = db.collection({
-      name: 'test',
-    });
+		const collection = db.collection({
+			name: "test",
+		});
 
-    await db.sync();
+		await db.sync();
 
-    collection.updateOptions({
-      ...collection.options,
-      schema: 'test',
-    });
+		collection.updateOptions({
+			...collection.options,
+			schema: "test",
+		});
 
-    // @ts-ignore
-    expect(collection.model._schema).toEqual('test');
-  });
+		// @ts-ignore
+		expect(collection.model._schema).toEqual("test");
+	});
 });

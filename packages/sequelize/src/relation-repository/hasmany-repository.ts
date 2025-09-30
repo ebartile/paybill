@@ -1,136 +1,152 @@
-import { omit } from 'lodash';
-import { HasMany, Op } from 'sequelize';
-import { type AggregateOptions, type DestroyOptions, type FindOptions, type TargetKey, type TK } from '../repository';
-import { MultipleRelationRepository } from './multiple-relation-repository';
-import { transaction } from './relation-repository';
-import { type AssociatedOptions } from './types';
+import { omit } from "lodash";
+import { HasMany, Op } from "sequelize";
+import {
+	type AggregateOptions,
+	type DestroyOptions,
+	type FindOptions,
+	type TargetKey,
+	type TK,
+} from "../repository";
+import { MultipleRelationRepository } from "./multiple-relation-repository";
+import { transaction } from "./relation-repository";
+import { type AssociatedOptions } from "./types";
 
 export class HasManyRepository extends MultipleRelationRepository {
-  async find(options?: FindOptions): Promise<any> {
-    const targetRepository = this.targetCollection.repository;
+	async find(options?: FindOptions): Promise<any> {
+		const targetRepository = this.targetCollection.repository;
 
-    const targetFilterOptions = await this.targetRepositoryFilterOptionsBySourceValue();
+		const targetFilterOptions =
+			await this.targetRepositoryFilterOptionsBySourceValue();
 
-    const findOptionsOmit = ['where', 'values', 'attributes'];
+		const findOptionsOmit = ["where", "values", "attributes"];
 
-    if (options?.filterByTk && !this.isMultiTargetKey(options.filterByTk)) {
-      // @ts-ignore
-      targetFilterOptions[this.associationField.targetKey] = options.filterByTk;
-      findOptionsOmit.push('filterByTk');
-    }
+		if (options?.filterByTk && !this.isMultiTargetKey(options.filterByTk)) {
+			// @ts-ignore
+			targetFilterOptions[this.associationField.targetKey] = options.filterByTk;
+			findOptionsOmit.push("filterByTk");
+		}
 
-    const findOptions = {
-      ...omit(options, findOptionsOmit),
-      filter: {
-        $and: [options?.filter || {}, targetFilterOptions],
-      },
-    };
+		const findOptions = {
+			...omit(options, findOptionsOmit),
+			filter: {
+				$and: [options?.filter || {}, targetFilterOptions],
+			},
+		};
 
-    return await targetRepository.find(findOptions);
-  }
+		return await targetRepository.find(findOptions);
+	}
 
-  async aggregate(options: AggregateOptions) {
-    const targetRepository = this.targetCollection.repository;
+	async aggregate(options: AggregateOptions) {
+		const targetRepository = this.targetCollection.repository;
 
-    const aggOptions = {
-      ...options,
-      filter: {
-        $and: [options.filter || {}, await this.targetRepositoryFilterOptionsBySourceValue()],
-      },
-    };
+		const aggOptions = {
+			...options,
+			filter: {
+				$and: [
+					options.filter || {},
+					await this.targetRepositoryFilterOptionsBySourceValue(),
+				],
+			},
+		};
 
-    return await targetRepository.aggregate(aggOptions);
-  }
+		return await targetRepository.aggregate(aggOptions);
+	}
 
-  @transaction((args, transaction) => {
-    return {
-      filterByTk: args[0],
-      transaction,
-    };
-  })
-  async destroy(options?: TK | DestroyOptions): Promise<boolean> {
-    const transaction = await this.getTransaction(options);
+	@transaction((args, transaction) => {
+		return {
+			filterByTk: args[0],
+			transaction,
+		};
+	})
+	async destroy(options?: TK | DestroyOptions): Promise<boolean> {
+		const transaction = await this.getTransaction(options);
 
-    const sourceModel = await this.getSourceModel(transaction);
+		const sourceModel = await this.getSourceModel(transaction);
 
-    const where = [
-      {
-        [this.association.foreignKey]: sourceModel.get((this.association as any).sourceKey),
-      },
-    ];
+		const where = [
+			{
+				[this.association.foreignKey]: sourceModel.get(
+					(this.association as any).sourceKey,
+				),
+			},
+		];
 
-    if (options && options['filter']) {
-      const filterResult = this.parseFilter(options['filter'], options);
+		if (options && options["filter"]) {
+			const filterResult = this.parseFilter(options["filter"], options);
 
-      if (filterResult.include && filterResult.include.length > 0) {
-        return await this.destroyByFilter(
-          {
-            filter: options['filter'],
-            filterByTk: options['filterByTk'],
-          },
-          transaction,
-        );
-      }
+			if (filterResult.include && filterResult.include.length > 0) {
+				return await this.destroyByFilter(
+					{
+						filter: options["filter"],
+						filterByTk: options["filterByTk"],
+					},
+					transaction,
+				);
+			}
 
-      where.push(filterResult.where);
-    }
+			where.push(filterResult.where);
+		}
 
-    if (options && options['filterByTk']) {
-      if (typeof options === 'object' && options['filterByTk']) {
-        options = options['filterByTk'];
-      }
+		if (options && options["filterByTk"]) {
+			if (typeof options === "object" && options["filterByTk"]) {
+				options = options["filterByTk"];
+			}
 
-      where.push({
-        [this.targetKey()]: options,
-      });
-    }
+			where.push({
+				[this.targetKey()]: options,
+			});
+		}
 
-    await this.targetModel.destroy({
-      where: {
-        [Op.and]: where,
-      },
-      individualHooks: true,
-      transaction,
-    });
+		await this.targetModel.destroy({
+			where: {
+				[Op.and]: where,
+			},
+			individualHooks: true,
+			transaction,
+		});
 
-    return true;
-  }
+		return true;
+	}
 
-  @transaction((args, transaction) => {
-    return {
-      tk: args[0],
-      transaction,
-    };
-  })
-  async set(options: TargetKey | TargetKey[] | AssociatedOptions): Promise<void> {
-    const transaction = await this.getTransaction(options);
+	@transaction((args, transaction) => {
+		return {
+			tk: args[0],
+			transaction,
+		};
+	})
+	async set(
+		options: TargetKey | TargetKey[] | AssociatedOptions,
+	): Promise<void> {
+		const transaction = await this.getTransaction(options);
 
-    const sourceModel = await this.getSourceModel(transaction);
+		const sourceModel = await this.getSourceModel(transaction);
 
-    await sourceModel[this.accessors().set](this.convertTks(options), {
-      transaction,
-    });
-  }
+		await sourceModel[this.accessors().set](this.convertTks(options), {
+			transaction,
+		});
+	}
 
-  @transaction((args, transaction) => {
-    return {
-      tk: args[0],
-      transaction,
-    };
-  })
-  async add(options: TargetKey | TargetKey[] | AssociatedOptions): Promise<void> {
-    const transaction = await this.getTransaction(options);
-    const sourceModel = await this.getSourceModel(transaction);
+	@transaction((args, transaction) => {
+		return {
+			tk: args[0],
+			transaction,
+		};
+	})
+	async add(
+		options: TargetKey | TargetKey[] | AssociatedOptions,
+	): Promise<void> {
+		const transaction = await this.getTransaction(options);
+		const sourceModel = await this.getSourceModel(transaction);
 
-    await sourceModel[this.accessors().add](this.convertTks(options), {
-      transaction,
-    });
-  }
+		await sourceModel[this.accessors().add](this.convertTks(options), {
+			transaction,
+		});
+	}
 
-  /**
-   * @internal
-   */
-  accessors() {
-    return (<HasMany>this.association).accessors;
-  }
+	/**
+	 * @internal
+	 */
+	accessors() {
+		return (<HasMany>this.association).accessors;
+	}
 }

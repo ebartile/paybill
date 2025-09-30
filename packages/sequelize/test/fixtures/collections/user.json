@@ -1,9 +1,9 @@
 {
-  "name": "users",
-  "fields": [
-    {
-      "type": "string",
-      "name": "name"
-    }
-  ]
+	"name": "users",
+	"fields": [
+		{
+			"type": "string",
+			"name": "name"
+		}
+	]
 }

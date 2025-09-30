@@ -1,2 +1,1 @@
-
-export * from './no-permission-error';
+export * from "./no-permission-error";

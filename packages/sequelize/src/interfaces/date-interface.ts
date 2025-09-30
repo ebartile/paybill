@@ -1,7 +1,7 @@
-import { DatetimeInterface } from './datetime-interface';
+import { DatetimeInterface } from "./datetime-interface";
 
 export class DateInterface extends DatetimeInterface {
-  toString(value: any, ctx?: any): any {
-    return value;
-  }
+	toString(value: any, ctx?: any): any {
+		return value;
+	}
 }

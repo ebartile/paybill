@@ -1,38 +1,38 @@
-import { DataTypes } from 'sequelize';
-import { type BaseColumnFieldOptions, Field } from './field';
+import { DataTypes } from "sequelize";
+import { type BaseColumnFieldOptions, Field } from "./field";
 
 export class StringField extends Field {
-  get dataType() {
-    if (this.options.length) {
-      return DataTypes.STRING(this.options.length);
-    }
+	get dataType() {
+		if (this.options.length) {
+			return DataTypes.STRING(this.options.length);
+		}
 
-    return DataTypes.STRING;
-  }
+		return DataTypes.STRING;
+	}
 
-  additionalSequelizeOptions() {
-    const { name, trim, unique } = this.options;
+	additionalSequelizeOptions() {
+		const { name, trim, unique } = this.options;
 
-    return {
-      set(value) {
-        if (unique && value === '') {
-          value = null;
-        }
-        if (value == null) {
-          this.setDataValue(name, null);
-          return;
-        }
-        if (typeof value !== 'string') {
-          value = value.toString();
-        }
-        this.setDataValue(name, trim ? value.trim() : value);
-      },
-    };
-  }
+		return {
+			set(value) {
+				if (unique && value === "") {
+					value = null;
+				}
+				if (value == null) {
+					this.setDataValue(name, null);
+					return;
+				}
+				if (typeof value !== "string") {
+					value = value.toString();
+				}
+				this.setDataValue(name, trim ? value.trim() : value);
+			},
+		};
+	}
 }
 
 export interface StringFieldOptions extends BaseColumnFieldOptions {
-  type: 'string';
-  length?: number;
-  trim?: boolean;
+	type: "string";
+	length?: number;
+	trim?: boolean;
 }

@@ -1,459 +1,474 @@
-import { Collection, Database, mockDatabase } from '../src';
-import { IdentifierError } from '../src/errors/identifier-error';
+import { Collection, Database, mockDatabase } from "@paybilldev/sequelize";
+import { IdentifierError } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it, test } from "vitest";
 
-describe('collection', () => {
-  let db: Database;
+describe("collection", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
+	beforeEach(async () => {
+		db = await mockDatabase();
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should remove sequelize model prototype methods after field remove', async () => {
-    db.collection({
-      name: 'tags',
-    });
+	it("should remove sequelize model prototype methods after field remove", async () => {
+		db.collection({
+			name: "tags",
+		});
 
-    const UserCollection = db.collection({
-      name: 'users',
-      fields: [{ type: 'belongsToMany', name: 'tags' }],
-    });
+		const UserCollection = db.collection({
+			name: "users",
+			fields: [{ type: "belongsToMany", name: "tags" }],
+		});
 
-    console.log(Object.getOwnPropertyNames(UserCollection.model.prototype));
+		console.log(Object.getOwnPropertyNames(UserCollection.model.prototype));
 
-    await UserCollection.removeField('tags');
+		await UserCollection.removeField("tags");
 
-    console.log(Object.getOwnPropertyNames(UserCollection.model.prototype));
-    // @ts-ignore
-    expect(UserCollection.model.prototype.getTags).toBeUndefined();
-  });
+		console.log(Object.getOwnPropertyNames(UserCollection.model.prototype));
+		// @ts-ignore
+		expect(UserCollection.model.prototype.getTags).toBeUndefined();
+	});
 
-  it('should not throw error when create empty collection in sqlite and mysql', async () => {
-    if (!db.inDialect('sqlite', 'mysql', 'mariadb')) {
-      return;
-    }
+	it("should not throw error when create empty collection in sqlite and mysql", async () => {
+		if (!db.inDialect("sqlite", "mysql", "mariadb")) {
+			return;
+		}
 
-    db.collection({
-      name: 'empty',
-      timestamps: false,
-      autoGenId: false,
-      fields: [],
-    });
+		db.collection({
+			name: "empty",
+			timestamps: false,
+			autoGenId: false,
+			fields: [],
+		});
 
-    let error;
+		let error;
 
-    try {
-      await db.sync({
-        force: false,
-        alter: {
-          drop: false,
-        },
-      });
-    } catch (e) {
-      error = e;
-    }
+		try {
+			await db.sync({
+				force: false,
+				alter: {
+					drop: false,
+				},
+			});
+		} catch (e) {
+			error = e;
+		}
 
-    expect(error).toBeUndefined();
-  });
+		expect(error).toBeUndefined();
+	});
 
-  it('can create empty collection', async () => {
-    if(!db.inDialect('postgres')) return;
-    db.collection({
-      name: 'empty',
-      timestamps: false,
-      autoGenId: false,
-      fields: [],
-    });
+	it("can create empty collection", async () => {
+		if (!db.inDialect("postgres")) return;
+		db.collection({
+			name: "empty",
+			timestamps: false,
+			autoGenId: false,
+			fields: [],
+		});
 
-    await db.sync({
-      force: false,
-      alter: {
-        drop: false,
-      },
-    });
+		await db.sync({
+			force: false,
+			alter: {
+				drop: false,
+			},
+		});
 
-    expect(db.getCollection('empty')).toBeInstanceOf(Collection);
-  });
+		expect(db.getCollection("empty")).toBeInstanceOf(Collection);
+	});
 
-  test('removeFromDb', async () => {
-    const collection = db.collection({
-      name: 'test',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-      ],
-    });
-    await db.sync();
+	test("removeFromDb", async () => {
+		const collection = db.collection({
+			name: "test",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+			],
+		});
+		await db.sync();
 
-    const field = collection.getField('name');
-    const r1 = await field.existsInDb();
-    expect(r1).toBe(true);
-    await collection.removeFieldFromDb('name');
-    const r2 = await field.existsInDb();
-    expect(r2).toBe(false);
+		const field = collection.getField("name");
+		const r1 = await field.existsInDb();
+		expect(r1).toBe(true);
+		await collection.removeFieldFromDb("name");
+		const r2 = await field.existsInDb();
+		expect(r2).toBe(false);
 
-    const r3 = await collection.existsInDb();
-    expect(r3).toBe(true);
-    await collection.removeFromDb();
-    const r4 = await collection.existsInDb();
-    expect(r4).toBe(false);
-  });
+		const r3 = await collection.existsInDb();
+		expect(r3).toBe(true);
+		await collection.removeFromDb();
+		const r4 = await collection.existsInDb();
+		expect(r4).toBe(false);
+	});
 
-  test('remove from db with cascade', async () => {
-    const testCollection = db.collection({
-      name: 'test',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-      ],
-    });
+	test("remove from db with cascade", async () => {
+		const testCollection = db.collection({
+			name: "test",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+			],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const viewName = `test_view`;
-    const viewSQL = `create view ${viewName} as select * from ${testCollection.getTableNameWithSchemaAsString()}`;
-    await db.sequelize.query(viewSQL);
+		const viewName = `test_view`;
+		const viewSQL = `create view ${viewName} as select * from ${testCollection.getTableNameWithSchemaAsString()}`;
+		await db.sequelize.query(viewSQL);
 
-    await expect(
-      testCollection.removeFromDb({
-        cascade: true,
-      }),
-    ).resolves.toBeTruthy();
-  });
+		await expect(
+			testCollection.removeFromDb({
+				cascade: true,
+			}),
+		).resolves.toBeTruthy();
+	});
 
-  test('collection disable authGenId', async () => {
-    const Test = db.collection({
-      name: 'test',
-      autoGenId: false,
-      fields: [{ type: 'string', name: 'uid', primaryKey: true }],
-    });
+	test("collection disable authGenId", async () => {
+		const Test = db.collection({
+			name: "test",
+			autoGenId: false,
+			fields: [{ type: "string", name: "uid", primaryKey: true }],
+		});
 
-    const model = Test.model;
+		const model = Test.model;
 
-    await db.sync();
-    expect(model.rawAttributes['id']).toBeUndefined();
-  });
+		await db.sync();
+		expect(model.rawAttributes["id"]).toBeUndefined();
+	});
 
-  test('new collection', async () => {
-    const collection = new Collection(
-      {
-        name: 'test',
-      },
-      { database: db },
-    );
+	test("new collection", async () => {
+		const collection = new Collection(
+			{
+				name: "test",
+			},
+			{ database: db },
+		);
 
-    expect(collection.name).toEqual('test');
-  });
+		expect(collection.name).toEqual("test");
+	});
 
-  test('collection create field', async () => {
-    const collection = new Collection(
-      {
-        name: 'user',
-      },
-      { database: db },
-    );
+	test("collection create field", async () => {
+		const collection = new Collection(
+			{
+				name: "user",
+			},
+			{ database: db },
+		);
 
-    collection.addField('age', {
-      type: 'integer',
-    });
+		collection.addField("age", {
+			type: "integer",
+		});
 
-    const ageField = collection.getField('age');
-    expect(ageField).toBeDefined();
-    expect(collection.hasField('age')).toBeTruthy();
-    expect(collection.hasField('test')).toBeFalsy();
+		const ageField = collection.getField("age");
+		expect(ageField).toBeDefined();
+		expect(collection.hasField("age")).toBeTruthy();
+		expect(collection.hasField("test")).toBeFalsy();
 
-    collection.removeField('age');
-    expect(collection.hasField('age')).toBeFalsy();
-  });
+		collection.removeField("age");
+		expect(collection.hasField("age")).toBeFalsy();
+	});
 
-  test('collection set fields', () => {
-    const collection = new Collection(
-      {
-        name: 'user',
-      },
-      { database: db },
-    );
+	test("collection set fields", () => {
+		const collection = new Collection(
+			{
+				name: "user",
+			},
+			{ database: db },
+		);
 
-    collection.setFields([{ type: 'string', name: 'firstName' }]);
-    expect(collection.hasField('firstName')).toBeTruthy();
-  });
+		collection.setFields([{ type: "string", name: "firstName" }]);
+		expect(collection.hasField("firstName")).toBeTruthy();
+	});
 
-  test('update collection field', async () => {
-    const collection = new Collection(
-      {
-        name: 'posts',
-        fields: [{ type: 'string', name: 'title' }],
-      },
-      {
-        database: db,
-      },
-    );
-    expect(collection.hasField('title')).toBeTruthy();
+	test("update collection field", async () => {
+		const collection = new Collection(
+			{
+				name: "posts",
+				fields: [{ type: "string", name: "title" }],
+			},
+			{
+				database: db,
+			},
+		);
+		expect(collection.hasField("title")).toBeTruthy();
 
-    collection.updateField('title', {
-      type: 'string',
-      name: 'content',
-    });
+		collection.updateField("title", {
+			type: "string",
+			name: "content",
+		});
 
-    expect(collection.hasField('title')).toBeFalsy();
-    expect(collection.hasField('content')).toBeTruthy();
-  });
+		expect(collection.hasField("title")).toBeFalsy();
+		expect(collection.hasField("content")).toBeTruthy();
+	});
 
-  test('collection with association', async () => {
-    const User = db.collection({
-      name: 'users',
-      fields: [
-        { type: 'string', name: 'name' },
-        { type: 'integer', name: 'age' },
-        { type: 'hasMany', name: 'posts' },
-      ],
-    });
+	test("collection with association", async () => {
+		const User = db.collection({
+			name: "users",
+			fields: [
+				{ type: "string", name: "name" },
+				{ type: "integer", name: "age" },
+				{ type: "hasMany", name: "posts" },
+			],
+		});
 
-    const Post = db.collection({
-      name: 'posts',
-      fields: [
-        { type: 'string', name: 'title' },
-        { type: 'string', name: 'content' },
-        {
-          type: 'belongsTo',
-          name: 'user',
-        },
-        {
-          type: 'hasMany',
-          name: 'comments',
-        },
-      ],
-    });
+		const Post = db.collection({
+			name: "posts",
+			fields: [
+				{ type: "string", name: "title" },
+				{ type: "string", name: "content" },
+				{
+					type: "belongsTo",
+					name: "user",
+				},
+				{
+					type: "hasMany",
+					name: "comments",
+				},
+			],
+		});
 
-    db.collection({
-      name: 'comments',
-      fields: [
-        { type: 'string', name: 'content' },
-        { type: 'string', name: 'comment_as' },
-        { type: 'belongsTo', name: 'post' },
-      ],
-    });
+		db.collection({
+			name: "comments",
+			fields: [
+				{ type: "string", name: "content" },
+				{ type: "string", name: "comment_as" },
+				{ type: "belongsTo", name: "post" },
+			],
+		});
 
-    expect(User.model.associations['posts']).toBeDefined();
-    expect(Post.model.associations['comments']).toBeDefined();
+		expect(User.model.associations["posts"]).toBeDefined();
+		expect(Post.model.associations["comments"]).toBeDefined();
 
-    expect(User.model.associations['posts'].target.associations['comments']).toBeDefined();
-  });
+		expect(
+			User.model.associations["posts"].target.associations["comments"],
+		).toBeDefined();
+	});
 });
 
-describe('collection sync', () => {
-  let db: Database;
+describe("collection sync", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
-    await db.clean({ drop: true });
-  });
+	beforeEach(async () => {
+		db = await mockDatabase();
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  test('sync fields', async () => {
-    const collection = new Collection(
-      {
-        name: 'users',
-      },
-      { database: db },
-    );
+	test("sync fields", async () => {
+		const collection = new Collection(
+			{
+				name: "users",
+			},
+			{ database: db },
+		);
 
-    collection.setFields([
-      { type: 'string', name: 'firstName' },
-      { type: 'string', name: 'lastName' },
-      { type: 'integer', name: 'age' },
-    ]);
+		collection.setFields([
+			{ type: "string", name: "firstName" },
+			{ type: "string", name: "lastName" },
+			{ type: "integer", name: "age" },
+		]);
 
-    await collection.sync();
-    const tableFields = await (<any>collection.model).queryInterface.describeTable(`${db.getTablePrefix()}users`);
+		await collection.sync();
+		const tableFields = await (<any>(
+			collection.model
+		)).queryInterface.describeTable(`${db.getTablePrefix()}users`);
 
-    if (db.options.underscored) {
-      expect(tableFields).toHaveProperty('first_name');
-      expect(tableFields).toHaveProperty('last_name');
-      expect(tableFields).toHaveProperty('age');
-    } else {
-      expect(tableFields).toHaveProperty('firstName');
-      expect(tableFields).toHaveProperty('lastName');
-      expect(tableFields).toHaveProperty('age');
-    }
-  });
+		if (db.options.underscored) {
+			expect(tableFields).toHaveProperty("first_name");
+			expect(tableFields).toHaveProperty("last_name");
+			expect(tableFields).toHaveProperty("age");
+		} else {
+			expect(tableFields).toHaveProperty("firstName");
+			expect(tableFields).toHaveProperty("lastName");
+			expect(tableFields).toHaveProperty("age");
+		}
+	});
 
-  test('sync with association not exists', async () => {
-    const collection = new Collection(
-      {
-        name: 'posts',
-        fields: [
-          { type: 'string', name: 'title' },
-          { type: 'belongsTo', name: 'users' },
-        ],
-      },
-      { database: db },
-    );
+	test("sync with association not exists", async () => {
+		const collection = new Collection(
+			{
+				name: "posts",
+				fields: [
+					{ type: "string", name: "title" },
+					{ type: "belongsTo", name: "users" },
+				],
+			},
+			{ database: db },
+		);
 
-    await collection.sync();
+		await collection.sync();
 
-    const model = collection.model;
+		const model = collection.model;
 
-    const tableFields = await (<any>model).queryInterface.describeTable(`${db.getTablePrefix()}posts`);
+		const tableFields = await (<any>model).queryInterface.describeTable(
+			`${db.getTablePrefix()}posts`,
+		);
 
-    expect(tableFields['userId']).toBeUndefined();
-  });
+		expect(tableFields["userId"]).toBeUndefined();
+	});
 
-  test('sync with association', async () => {
-    new Collection(
-      {
-        name: 'tags',
-        fields: [{ type: 'string', name: 'name' }],
-      },
-      { database: db },
-    );
+	test("sync with association", async () => {
+		new Collection(
+			{
+				name: "tags",
+				fields: [{ type: "string", name: "name" }],
+			},
+			{ database: db },
+		);
 
-    const collection = new Collection(
-      {
-        name: 'posts',
-        fields: [
-          { type: 'string', name: 'title' },
-          { type: 'belongsToMany', name: 'tags' },
-        ],
-      },
-      {
-        database: db,
-      },
-    );
+		const collection = new Collection(
+			{
+				name: "posts",
+				fields: [
+					{ type: "string", name: "title" },
+					{ type: "belongsToMany", name: "tags" },
+				],
+			},
+			{
+				database: db,
+			},
+		);
 
-    const model = collection.model;
-    await collection.sync();
+		const model = collection.model;
+		await collection.sync();
 
-    if (db.options.underscored) {
-      const tableFields = await (<any>model).queryInterface.describeTable(`${db.getTablePrefix()}posts_tags`);
-      expect(tableFields['post_id']).toBeDefined();
-      expect(tableFields['tag_id']).toBeDefined();
-    } else {
-      const tableFields = await (<any>model).queryInterface.describeTable(`${db.getTablePrefix()}postsTags`);
-      expect(tableFields['postId']).toBeDefined();
-      expect(tableFields['tagId']).toBeDefined();
-    }
-  });
+		if (db.options.underscored) {
+			const tableFields = await (<any>model).queryInterface.describeTable(
+				`${db.getTablePrefix()}posts_tags`,
+			);
+			expect(tableFields["post_id"]).toBeDefined();
+			expect(tableFields["tag_id"]).toBeDefined();
+		} else {
+			const tableFields = await (<any>model).queryInterface.describeTable(
+				`${db.getTablePrefix()}postsTags`,
+			);
+			expect(tableFields["postId"]).toBeDefined();
+			expect(tableFields["tagId"]).toBeDefined();
+		}
+	});
 
-  test('limit table name length', async () => {
-    const longName =
-      'this_is_a_very_long_table_name_that_should_be_truncated_this_is_a_very_long_table_name_that_should_be_truncated';
+	test("limit table name length", async () => {
+		const longName =
+			"this_is_a_very_long_table_name_that_should_be_truncated_this_is_a_very_long_table_name_that_should_be_truncated";
 
-    let error;
+		let error;
 
-    try {
-      new Collection(
-        {
-          name: longName,
-          fields: [{ type: 'string', name: 'test' }],
-        },
-        {
-          database: db,
-        },
-      );
-    } catch (e) {
-      error = e;
-    }
+		try {
+			new Collection(
+				{
+					name: longName,
+					fields: [{ type: "string", name: "test" }],
+				},
+				{
+					database: db,
+				},
+			);
+		} catch (e) {
+			error = e;
+		}
 
-    expect(error).toBeInstanceOf(IdentifierError);
-  });
+		expect(error).toBeInstanceOf(IdentifierError);
+	});
 
-  it('should throw error when collection has same table name and same schema', async () => {
-    db.collection({
-      name: 'test',
-      tableName: 'test',
-      schema: 'public',
-    });
+	it("should throw error when collection has same table name and same schema", async () => {
+		db.collection({
+			name: "test",
+			tableName: "test",
+			schema: "public",
+		});
 
-    let err;
+		let err;
 
-    try {
-      db.collection({
-        name: 'test2',
-        tableName: 'test',
-        schema: 'public',
-      });
-    } catch (e) {
-      err = e;
-    }
+		try {
+			db.collection({
+				name: "test2",
+				tableName: "test",
+				schema: "public",
+			});
+		} catch (e) {
+			err = e;
+		}
 
-    expect(err.message).toContain('have same tableName');
-  });
+		expect(err.message).toContain("have same tableName");
+	});
 
-  it('should allow same table name in difference schema', async () => {
-    db.collection({
-      name: 'test',
-      tableName: 'test',
-      schema: 'public',
-    });
+	it("should allow same table name in difference schema", async () => {
+		db.collection({
+			name: "test",
+			tableName: "test",
+			schema: "public",
+		});
 
-    let err;
+		let err;
 
-    try {
-      db.collection({
-        name: 'test2',
-        tableName: 'test',
-        schema: 'other_schema',
-      });
-    } catch (e) {
-      err = e;
-    }
+		try {
+			db.collection({
+				name: "test2",
+				tableName: "test",
+				schema: "other_schema",
+			});
+		} catch (e) {
+			err = e;
+		}
 
-    expect(err).toBeFalsy();
-  });
+		expect(err).toBeFalsy();
+	});
 
-  test('limit field name length', async () => {
-    const longFieldName =
-      'this_is_a_very_long_field_name_that_should_be_truncated_this_is_a_very_long_field_name_that_should_be_truncated';
+	test("limit field name length", async () => {
+		const longFieldName =
+			"this_is_a_very_long_field_name_that_should_be_truncated_this_is_a_very_long_field_name_that_should_be_truncated";
 
-    let error;
+		let error;
 
-    try {
-      new Collection(
-        {
-          name: 'test',
-          fields: [{ type: 'string', name: longFieldName }],
-        },
-        {
-          database: db,
-        },
-      );
-    } catch (e) {
-      error = e;
-    }
+		try {
+			new Collection(
+				{
+					name: "test",
+					fields: [{ type: "string", name: longFieldName }],
+				},
+				{
+					database: db,
+				},
+			);
+		} catch (e) {
+			error = e;
+		}
 
-    expect(error).toBeInstanceOf(IdentifierError);
-  });
+		expect(error).toBeInstanceOf(IdentifierError);
+	});
 
-  test('paranoid', async () => {
-    const postCollection = db.collection({
-      name: 'posts',
-      fields: [{ type: 'string', name: 'title' }],
-      paranoid: true,
-    });
+	test("paranoid", async () => {
+		const postCollection = db.collection({
+			name: "posts",
+			fields: [{ type: "string", name: "title" }],
+			paranoid: true,
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const p1 = await postCollection.repository.create({ values: { title: 't1' } });
-    await p1.destroy();
+		const p1 = await postCollection.repository.create({
+			values: { title: "t1" },
+		});
+		await p1.destroy();
 
-    const p2 = await postCollection.repository.findOne({ filterByTk: p1.id });
-    expect(p2).toBeNull();
+		const p2 = await postCollection.repository.findOne({ filterByTk: p1.id });
+		expect(p2).toBeNull();
 
-    const p3 = await postCollection.repository.findOne({ filterByTk: p1.id, paranoid: false });
-    expect(p3).not.toBeNull();
-  });
+		const p3 = await postCollection.repository.findOne({
+			filterByTk: p1.id,
+			paranoid: false,
+		});
+		expect(p3).not.toBeNull();
+	});
 });

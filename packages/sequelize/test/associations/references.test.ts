@@ -1,53 +1,53 @@
-import { Database, mockDatabase } from '../../src';
+import { Database, mockDatabase } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe('association references', () => {
-  let db: Database;
+describe("association references", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase();
+	beforeEach(async () => {
+		db = await mockDatabase();
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should add reference with default priority', async () => {
-    db.collection({
-      name: 'users',
-      fields: [{ type: 'hasOne', name: 'profile' }],
-    });
+	it("should add reference with default priority", async () => {
+		db.collection({
+			name: "users",
+			fields: [{ type: "hasOne", name: "profile" }],
+		});
 
-    db.collection({
-      name: 'profiles',
-      fields: [{ type: 'belongsTo', name: 'user' }],
-    });
+		db.collection({
+			name: "profiles",
+			fields: [{ type: "belongsTo", name: "user" }],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const references = db.referenceMap.getReferences('users');
+		const references = db.referenceMap.getReferences("users");
 
-    expect(references[0].priority).toBe('default');
-  });
+		expect(references[0].priority).toBe("default");
+	});
 
-  it('should add reference with user defined priority', async () => {
-    db.collection({
-      name: 'users',
-      fields: [{ type: 'hasOne', name: 'profile', onDelete: 'CASCADE' }],
-    });
+	it("should add reference with user defined priority", async () => {
+		db.collection({
+			name: "users",
+			fields: [{ type: "hasOne", name: "profile", onDelete: "CASCADE" }],
+		});
 
-    db.collection({
-      name: 'profiles',
-      fields: [{ type: 'belongsTo', name: 'user' }],
-    });
+		db.collection({
+			name: "profiles",
+			fields: [{ type: "belongsTo", name: "user" }],
+		});
 
-    await db.sync();
+		await db.sync();
 
-    const references = db.referenceMap.getReferences('users');
+		const references = db.referenceMap.getReferences("users");
 
-    expect(references.length).toBe(1);
-    expect(references[0].priority).toBe('user');
-  });
+		expect(references.length).toBe(1);
+		expect(references[0].priority).toBe("user");
+	});
 });

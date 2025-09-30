@@ -1,63 +1,65 @@
-import { mockDatabase, Database } from '../src';
+import { mockDatabase, Database } from "@paybilldev/sequelize";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-describe('sync', () => {
-  let db: Database;
+describe("sync", () => {
+	let db: Database;
 
-  beforeEach(async () => {
-    db = await mockDatabase({
-      logging: console.log,
-    });
+	beforeEach(async () => {
+		db = await mockDatabase({
+			logging: console.log,
+		});
 
-    await db.clean({ drop: true });
-  });
+		await db.clean({ drop: true });
+	});
 
-  afterEach(async () => {
-    await db.close();
-  });
+	afterEach(async () => {
+		await db.close();
+	});
 
-  it('should not sync id fields when inherits not changed', async () => {
-    if (!db.inDialect('postgres')) {
-      return;
-    }
+	it("should not sync id fields when inherits not changed", async () => {
+		if (!db.inDialect("postgres")) {
+			return;
+		}
 
-    const Parent = db.collection({
-      name: 'parent',
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-      ],
-    });
+		const Parent = db.collection({
+			name: "parent",
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+			],
+		});
 
-    const fn = vi.fn();
+		const fn = vi.fn();
 
-    const Child = db.collection({
-      name: 'child',
-      inherits: ['parent'],
-      fields: [
-        {
-          type: 'string',
-          name: 'name',
-        },
-      ],
-    });
+		const Child = db.collection({
+			name: "child",
+			inherits: ["parent"],
+			fields: [
+				{
+					type: "string",
+					name: "name",
+				},
+			],
+		});
 
-    expect(await Child.existsInDb()).toBeFalsy();
+		expect(await Child.existsInDb()).toBeFalsy();
 
-    await db.sync();
+		await db.sync();
 
-    expect(await Child.existsInDb()).toBeTruthy();
+		expect(await Child.existsInDb()).toBeTruthy();
 
-    Child.setField('age', {
-      type: 'integer',
-    });
+		Child.setField("age", {
+			type: "integer",
+		});
 
-    await db.sync({});
+		await db.sync({});
 
-    const tableColumns = await db.sequelize.getQueryInterface().describeTable(Child.getTableNameWithSchema());
+		const tableColumns = await db.sequelize
+			.getQueryInterface()
+			.describeTable(Child.getTableNameWithSchema());
 
-    expect(tableColumns).toHaveProperty('age');
-  });
+		expect(tableColumns).toHaveProperty("age");
+	});
 });

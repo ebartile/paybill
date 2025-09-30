@@ -1,22 +1,22 @@
-import { StringValueParser } from '../../src/value-parsers';
+import { StringValueParser } from "@paybilldev/sequelize";
 import { beforeEach, describe, expect, test } from "vitest";
 
-describe('array value parser', () => {
-  let parser: StringValueParser;
+describe("array value parser", () => {
+	let parser: StringValueParser;
 
-  beforeEach(() => {
-    parser = new StringValueParser({}, {});
-  });
+	beforeEach(() => {
+		parser = new StringValueParser({}, {});
+	});
 
-  const expectValue = (value) => {
-    parser = new StringValueParser({}, {});
-    parser.setValue(value);
-    return expect(parser.getValue());
-  };
+	const expectValue = (value) => {
+		parser = new StringValueParser({}, {});
+		parser.setValue(value);
+		return expect(parser.getValue());
+	};
 
-  test('string value parser', async () => {
-    expectValue('{"a":1}').toEqual('{"a":1}');
-    expectValue('{"a":1,"b":2}').toEqual('{"a":1,"b":2}');
-    expectValue('{"a":1,"b":2,"c":3}').toEqual('{"a":1,"b":2,"c":3}');
-  });
+	test("string value parser", async () => {
+		expectValue('{"a":1}').toEqual('{"a":1}');
+		expectValue('{"a":1,"b":2}').toEqual('{"a":1,"b":2}');
+		expectValue('{"a":1,"b":2,"c":3}').toEqual('{"a":1,"b":2,"c":3}');
+	});
 });

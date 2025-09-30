@@ -1,6 +1,6 @@
-import { extend } from '../../../src/database';
+import { extend } from "@paybilldev/sequelize";
 
 export default extend({
-  name: 'images',
-  fields: [{ type: 'string', name: 'url' }],
+	name: "images",
+	fields: [{ type: "string", name: "url" }],
 });
