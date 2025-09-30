@@ -62,7 +62,7 @@ describe("/test/stream-rotate.test.ts", () => {
 				counter++;
 				// rotatingLogStream.write(Date() + "\ttesting 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890\n")
 				rotatingLogStream.write(
-					Date() + "ニューバランスの100年を超える長い歴史\n",
+					Date() + "New Balance’s long history of over 100 years\n",
 				);
 				// if(counter == 2000){
 				if (counter == 400) {
@@ -77,7 +77,7 @@ describe("/test/stream-rotate.test.ts", () => {
 				for (let y = 0; y < 400; y++) {
 					// console.log(i + " ")
 					// rotatingLogStream.write(y + ": " + Date.now() + " >> ");
-					rotatingLogStream.write("適: " + Date.now() + " >> ");
+					rotatingLogStream.write("suitable: " + Date.now() + " >> ");
 				}
 				rotatingLogStream.write("\n");
 			}, 10);
@@ -186,7 +186,7 @@ describe("/test/stream-rotate.test.ts", () => {
 	});
 
 	it("should test rotate log when file has limit size", async () => {
-		// 测试当没有日志切割规则只有大小规则，初始化文件达到限制大小，是否能正确切割
+		// Test whether the log can be cut correctly when there is no log cutting rule but only size rule and the initialization file reaches the limit size
 		const buffer: Buffer = await new Promise((resolve) => {
 			crypto.randomBytes(1048, (err, buffer) => {
 				resolve(buffer);
@@ -218,7 +218,7 @@ describe("/test/stream-rotate.test.ts", () => {
 	});
 
 	it("should test rotate log when file has limit size2", async () => {
-		// 测试当没有日志切割规则只有大小规则，初始化文件未达到限制大小，再写一点看是否能正确切割
+		// Test when there is no log cutting rule but only size rule, the initialization file does not reach the limit size, write a little more to see if it can be cut correctly
 		const buffer: Buffer = await new Promise((resolve) => {
 			crypto.randomBytes(1000, (err, buffer) => {
 				resolve(buffer);
@@ -268,11 +268,11 @@ describe("/test/stream-rotate.test.ts", () => {
 			endStream: true,
 		});
 
-		// 第一次写入 800k
+		// First write 800k
 		logStream.write(token);
-		// 第二次写入 800k，这个时候应该都在第一个文件
+		// The second time, 800k is written, which should all be in the first file.
 		logStream.write(token);
-		// 第三次写入 800k，超过第一个文件的大小，写入第二个文件
+		// The third write is 800k, which exceeds the size of the first file, so it is written to the second file
 		logStream.write(token);
 		logStream.end();
 		await sleep();
@@ -348,7 +348,7 @@ describe("/test/stream-rotate.test.ts", () => {
 			counter++;
 			// rotatingLogStream.write(Date() + "\ttesting 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890-testing 1234567890\n")
 			rotatingLogStream.write(
-				Date() + "ニューバランスの100年を超える長い歴史\n",
+				Date() + "New Balance’s long history of over 100 years\n",
 			);
 			// if(counter == 2000){
 			if (counter == 400) {
@@ -363,7 +363,7 @@ describe("/test/stream-rotate.test.ts", () => {
 			for (let y = 0; y < 400; y++) {
 				// console.log(i + " ")
 				// rotatingLogStream.write(y + ": " + Date.now() + " >> ");
-				rotatingLogStream.write("適: " + Date.now() + " >> ");
+				rotatingLogStream.write("suitable: " + Date.now() + " >> ");
 			}
 			// */
 			rotatingLogStream.write("\n");

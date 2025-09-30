@@ -316,7 +316,7 @@ export class FileStreamRotator {
 		}
 
 		if (fileSize) {
-			// 下面应该是启动找到已经创建了的文件，做一些预先处理，比如找到最新的那个文件，方便写入
+			// The following should start to find the files that have been created and do some pre-processing, such as finding the latest file to facilitate writing
 			let lastLogFile = null;
 			let t_log = logfile;
 			if (
@@ -340,7 +340,7 @@ export class FileStreamRotator {
 				t_log += options.extension;
 			}
 
-			// 计数，找到数字最大的那个日志文件
+			// Count and find the log file with the largest number
 			while (fs.existsSync(t_log)) {
 				lastLogFile = t_log;
 				fileCount++;
@@ -348,9 +348,9 @@ export class FileStreamRotator {
 			}
 			if (lastLogFile) {
 				const lastLogFileStats = fs.statSync(lastLogFile);
-				// 看看最新的那个日志有没有超过设置的大小
+				// Check whether the latest log exceeds the set size.
 				if (lastLogFileStats.size < fileSize) {
-					// 没有超，把新文件退栈
+					// No overtime, pop the new file out of the stack
 					t_log = lastLogFile;
 					fileCount--;
 					curSize = lastLogFileStats.size;
@@ -367,11 +367,11 @@ export class FileStreamRotator {
 			logfile,
 		);
 
-		// 循环创建目录和文件，类似 mkdirp
+		// Create directories and files in a loop, similar to mkdirp
 		mkDirForFile(logfile);
 
 		const fileOptions = options.fileOptions || { flags: "a" };
-		// 创建文件流
+		// Create file stream
 		let rotateStream = fs.createWriteStream(logfile, fileOptions);
 		if (
 			(curDate &&
@@ -386,7 +386,7 @@ export class FileStreamRotator {
 				fileSize ? "size: " + fileSize : "",
 			);
 
-			// 这里用了一个事件代理，方便代理的内容做处理
+			// An event proxy is used here to facilitate the processing of the proxy content
 			const stream: any = new EventEmitter();
 			stream.auditLog = auditLog;
 			stream.filename = options.filename;
@@ -404,15 +404,15 @@ export class FileStreamRotator {
 			BubbleEvents(rotateStream, stream);
 
 			stream.on("new", (newLog) => {
-				// 创建审计的日志，记录最新的日志文件，切割的记录等
+				// Create audit logs, record the latest log files, cutting records, etc.
 				stream.auditLog = this.addLogToAudit(newLog, stream.auditLog, stream);
-				// 创建软链
+				// Create soft link
 				if (options.createSymlink) {
 					createCurrentSymLink(newLog, options.symlinkName);
 				}
 			});
 
-			// 这里采用 1s 的防抖，避免过于频繁的获取文件大小
+			// Here we use 1s anti-shake to avoid getting the file size too frequently.
 			const resetCurLogSize = debounce(() => {
 				let isCurLogRemoved = false;
 				try {
@@ -506,7 +506,7 @@ export class FileStreamRotatorManager {
 	static getStream(options: StreamOptions) {
 		let stream;
 		if (this.enabled) {
-			// 以文件路径作为缓存
+			// Use file path as cache
 			if (!this.streamPool.has(options.filename)) {
 				const stream = new FileStreamRotator().getStream(options);
 				this.streamPool.set(options.filename, stream);

@@ -62,7 +62,7 @@ describe("/test/index.test.ts", () => {
 		logger.info("%s %d", "aaa", 222);
 		expect(fnStdout.mock.calls[5][0]).toContain("aaa 222");
 
-		// 单个数据
+		// single data
 		// string
 		logger.error("plain error message");
 		expect(fnStderr.mock.calls[0][0]).toContain("plain error message");
@@ -100,7 +100,7 @@ describe("/test/index.test.ts", () => {
 		// named error
 		const error = new Error("named error instance");
 		error.name = "NamedError";
-		// 直接输出 error
+		// Directly output error
 		logger.error(error);
 		expect(fnStderr.mock.calls[6][0]).toContain("NamedError");
 		expect(fnStderr.mock.calls[6][0]).toContain("named error instance");
@@ -134,7 +134,7 @@ describe("/test/index.test.ts", () => {
 		coreLogger.info("hello world3");
 		coreLogger.warn("hello world4");
 		coreLogger.error("hello world5");
-		// 调整完之后控制台应该看不见了，但是文件还写入
+		// After the adjustment, the console should be invisible, but the file is still written
 
 		coreLogger.get("console").level = "warn";
 		expect(coreLogger.get("console").level).toEqual("warn");
@@ -142,7 +142,7 @@ describe("/test/index.test.ts", () => {
 		coreLogger.info("hello world7");
 		coreLogger.info("hello world8");
 
-		// 文件也不会写入了
+		// The file will not be written
 		coreLogger.get("file").level = "warn";
 		expect(coreLogger.get("file").level).toEqual("warn");
 		coreLogger.info("hello world9");
@@ -258,9 +258,9 @@ describe("/test/index.test.ts", () => {
 		// named error
 		const error = new Error("named error instance");
 		error.name = "NamedError";
-		// 直接输出 error
+		// Directly output error
 		logger.error(error);
-		// 文本在前，加上 error 实例
+		// Text first, plus error instance
 		logger.info([1, 2, 3]);
 		logger.info(new Error("info - error instance"));
 		logger.info(
@@ -370,7 +370,7 @@ describe("/test/index.test.ts", () => {
 		consoleLogger.error(err, { label: 123 });
 		consoleLogger.error("before:", err);
 		console.log("---");
-		consoleLogger.info("启动耗时 %d ms", 111);
+		consoleLogger.info("Startup took %d ms", 111);
 		consoleLogger.info("%j", { a: 1 });
 		consoleLogger.debug("1", "2", "3");
 		consoleLogger.info("plain error message", 321);
@@ -512,7 +512,7 @@ describe("/test/index.test.ts", () => {
 		const originLogger: any = createConsoleLogger("consoleLogger");
 		expect(loggers.size).toEqual(1);
 		const logger = new Logger();
-		// 重复添加会报错
+		// Repeated addition will result in an error
 		expect(() => {
 			loggers.addLogger("consoleLogger", logger);
 		}).toThrow();
@@ -520,13 +520,13 @@ describe("/test/index.test.ts", () => {
 		let consoleLogger: ILogger = loggers.getLogger("consoleLogger");
 		expect(originLogger).toEqual(consoleLogger);
 
-		// 允许重复添加，且直接返回原对象
+		// Allow repeated additions and return the original object directly
 		loggers.addLogger("consoleLogger", originLogger, false);
 		expect(loggers.size).toEqual(1);
 		consoleLogger = loggers.getLogger("consoleLogger");
 		expect(originLogger).toEqual(consoleLogger);
 
-		// 允许重复添加，且替换原来的对象
+		// Allow repeated additions and replace the original object
 		loggers.addLogger("consoleLogger", logger, false);
 		expect(loggers.size).toEqual(1);
 		consoleLogger = loggers.getLogger("consoleLogger");

@@ -28,7 +28,7 @@ export class LoggerFactory extends Map<string, ILogger> {
 
 	addLogger(name: string, logger: ILogger, errorWhenReplace = true) {
 		if (!errorWhenReplace || !this.has(name)) {
-			// 同一个实例就不需要再添加了
+			// The same instance does not need to be added again
 			if (this.get(name) !== logger) {
 				if (logger["onClose"]) {
 					logger["onClose"](() => {

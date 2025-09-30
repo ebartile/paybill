@@ -250,13 +250,13 @@ const oldEnableOptionsKeys: {
 };
 
 /**
- * 仅兼容老的 enableXXX 配置，这部分配置无法对应到新的配置
+ * Only compatible with the old enableXXX configuration, this part of the configuration cannot be mapped to the new configuration
  * @param unknownLoggerOptions
  */
 export function formatLoggerOptions(
 	unknownLoggerOptions: LoggerOptions,
 ): LoggerOptions {
-	// 如果包含任意一个老的配置，则需要转换成新的配置
+	// If any old configuration is included, it needs to be converted to the new configuration
 	if (
 		Object.keys(unknownLoggerOptions).some((key) => oldEnableOptionsKeys[key])
 	) {
@@ -264,7 +264,7 @@ export function formatLoggerOptions(
 
 		for (const key of Object.keys(unknownLoggerOptions)) {
 			if (!oldEnableOptionsKeys[key]) {
-				// 新值直接覆盖，即使值存在
+				// The new value directly overwrites the value even if it exists.
 				newOptions[key] = unknownLoggerOptions[key];
 			}
 		}
@@ -331,8 +331,8 @@ export function isWin32() {
 }
 
 /**
- * 不使用 dayjs 实现格式化，因为 dayjs 会有性能问题
- * 生成 YYYY-MM-DD HH:mm:ss.SSS 格式的时间
+ * Do not use dayjs for formatting because dayjs may have performance issues
+ * Generates time in YYYY-MM-DD HH:mm:ss.SSS format
  * @param date
  */
 export function getFormatDate(date: Date) {

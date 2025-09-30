@@ -54,7 +54,7 @@ export class FileTransport
 			fileOptions: { flags: "a" },
 			utc: false,
 			extension: "",
-			createSymlink: !isWin32(), // windows 下不生成软链
+			createSymlink: !isWin32(), // windows No soft link is generated
 			maxFiles: "7d",
 			zippedArchive: false,
 		} as Omit<StreamOptions, "filename">;
@@ -86,7 +86,7 @@ export class FileTransport
 					try {
 						fs.unlinkSync(gzName);
 					} catch (_err) {
-						// 尝试删除文件时可能会有些报错，比如权限问题，输出到 stderr 中
+						// When trying to delete a file, some errors may be reported, such as permission issues, and output to stderr
 						console.error(_err);
 					}
 					return;
@@ -153,7 +153,7 @@ export class FileTransport
 
 		if (this.logStream) {
 			FileStreamRotatorManager.close(this.logStream);
-			// 处理重复调用 close
+			// Handling repeated calls to close
 			this.logStream = null;
 		}
 	}
